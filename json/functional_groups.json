@@ -1,0 +1,107 @@
+{"pattern":"[NX3][CX3]=[CX3]","name":"Enamine","class":0}
+{"pattern":"[CX3](=[OX1])[F,Cl,Br,I]","name":"Acyl halide","class":1}
+{"pattern":"[SX4](=[O;H0;D1;+0])(=[O;H0;D1;+0])-[NX3;D1,D2;+0]","name":"Sulfonamide","class":2}
+{"pattern":"[CX3](=[OX1])-[NX3]-[NX3]","name":"Acylhydrazine","class":3}
+{"pattern":"[CX3](=[OX1])-[NX3]-[NX2]=[*]","name":"Hydrazone amide","class":4}
+{"pattern":"[NX3]-[NX3]","name":"Hydrazine","class":5}
+{"pattern":"[NX3][NX2]=[*]","name":"Hydrazone","class":6}
+{"pattern":"[Mg]-[Cl,Br,I]","name":"Magnesium halide","class":7}
+{"pattern":"[O;D2;+0]-[S;D4;+0](=[O;H0;D1;+0])(=[O;H0;D1;+0])-[CX4;D4;+0](-F)(-F)-F","name":"Triflate","class":8}
+{"pattern":"[O;H0;D2;+0]-[S;H0;D4;+0](=[O;H0;D1;+0])(=[O;H0;D1;+0])-[C;H3;D1;+0]","name":"Mesylate","class":9}
+{"pattern":"[C;H3;D1;+0]-[c;H0;D3;+0]1:[c;H1;D2;+0]:[c;H1;D2;+0]:[c;H0;D3;+0](-[S;H0;D4;+0](=[O;H0;D1;+0])(=[O;H0;D1;+0])):[c;H1;D2;+0]:[c;H1;D2;+0]:1","name":"Tosylate","class":10}
+{"pattern":"c1cccccc1-[O;H1;D1;+0]","name":"Phenol","class":11}
+{"pattern":"[CX4;D4;+0;!$(CS)](-F)(-F)-F","name":"Trifluoro group","class":12}
+{"pattern":"[CX4;D4;+0](-Cl)(-Cl)-Cl","name":"Trichloro group","class":13}
+{"pattern":"[cX3;D3]-[F,Cl,Br,I]","name":"Aromatic halide","class":14}
+{"pattern":"[CX4;H0]-[F,Cl,Br,I]","name":"Tertiary halide","class":15}
+{"pattern":"[CX4;H1]-[F,Cl,Br,I]","name":"Secondary halide","class":16}
+{"pattern":"[CX4;H2]-[F,Cl,Br,I]","name":"Primary halide","class":17}
+{"pattern":"[CX3;H0]-[F,Cl,Br,I]","name":"Alkenyl halide","class":18}
+{"pattern":"[CX2;H0]-[F,Cl,Br,I]","name":"Haloalkyne","class":19}
+{"pattern":"[CX3](=[OX1])[OX2][CX3](=[OX1])","name":"Anhydride","class":20}
+{"pattern":"[CX3H1](=O)[#6]","name":"Aldehyde","class":21}
+{"pattern":"[CX3H2](=O)","name":"Formaldehyde","class":22}
+{"pattern":"[NX3][CX3]=[NX3+]","name":"Amidinium","class":23}
+{"pattern":"[NX3][CX3](=[OX1])[OX2H0]","name":"Carbamic ester","class":24}
+{"pattern":"[NX3,NX4+][CX3](=[OX1])[OX2H,OX1-]","name":"Carbamic acid","class":25}
+{"pattern":"[CX3](=[OX1])([OX2])[OX2H,OX1H0-1]","name":"Carbonic Acid","class":26}
+{"pattern":"C[OX2][CX3](=[OX1])[OX2]C","name":"Carbonic Ester","class":27}
+{"pattern":"[CX3](=O)[OX2H1]","name":"Carboxylic acid","class":28}
+{"pattern":"[NX3][CX2]#[NX1]","name":"Cyanamide","class":29}
+{"pattern":"[#6][CX3](=O)[#6]","name":"Ketone","class":30}
+{"pattern":"[#6][CX3](=O)[OX2H0][#6;!$(C(=O)(-O)C)]","name":"Ester","class":31}
+{"pattern":"[OD2]([#6])[#6]","name":"Ether","class":32}
+{"pattern":"[N;H2;D3;+0][c;$(cc)]","name":"Aniline","class":33}
+{"pattern":"[NX3][C;H0;D3;+0](=[O;H0;D1;+0])[NX3]","name":"Urea","class":34}
+{"pattern":"[NX3][CX3](=[SX1])[NX3]","name":"Thiourea","class":35}
+{"pattern":"[NX3][CX3]=[SX1]","name":"Thioamide","class":36}
+{"pattern":"[N;H0;D2;+0]=[N;H0;D2;+1]=[N;H0;D1;-1]","name":"Azide","class":37}
+{"pattern":"[NX2]=[NX2]","name":"Diazene","class":38}
+{"pattern":"[$([NX2]=[NX3+]([O-])[#6]),$([NX2]=[NX3+0](=[O])[#6])]","name":"Azoxy","class":39}
+{"pattern":"[#6]=[N+]=[N-]","name":"Diazo","class":40}
+{"pattern":"[#6-]-[N+]#[N]","name":"Diazo","class":41}
+{"pattern":"[CX3;$([C]([#6])[#6]),$([CH][#6])]=[NX2][#6]","name":"Substituted imine","class":42}
+{"pattern":"[$([CX3]([#6])[#6]),$([CX3H][#6])]=[$([NX2][#6]),$([NX2H])]","name":"Unsubstituted imine","class":43}
+{"pattern":"[CX3](=[OX1])[NX3H][CX3](=[OX1])","name":"Unsubstituted dicarboximide","class":44}
+{"pattern":"[CX3](=[OX1])[NX3H0]([#6])[CX3](=[OX1])","name":"Substituted dicarboximide","class":45}
+{"pattern":"[$([NX3](=[OX1])(=[OX1])O),$([NX3+]([OX1-])(=[OX1])O)]","name":"Nitrate","class":46}
+{"pattern":"[NX1]#[CX2]","name":"Nitrile","class":47}
+{"pattern":"[$([NX3](=O)=O),$([NX3+](=O)[O-])][!#8]","name":"Nitro group","class":48}
+{"pattern":"[NX2]=[OX1]","name":"Nitroso","class":49}
+{"pattern":"[#6]-[N;H0;D2;+1]#[C;H0;D1;-1]","name":"Isocyanide","class":50}
+{"pattern":"[#6]-[N;H0;D2;+0]=[C;H0;D2;+0]=[O;H0;D1;+0]","name":"Isocyanate","class":51}
+{"pattern":"[C;H0,H1;+0](=[O;H0;D1;+0])-[N;H2;D1;+0]","name":"Primary amide","class":52}
+{"pattern":"[C;H0,H1;+0](=[O;H0;D1;+0])-[N;H1;D2;+0]","name":"Secondary amide","class":53}
+{"pattern":"[C;H0,H1;+0](=[O;H0;D1;+0])-[N;H0;D3;+0]","name":"Tertiary amide","class":54}
+{"pattern":"[CX4;H2][OX2H]","name":"Primary alcohol","class":55}
+{"pattern":"[CX4;H1][OX2H]","name":"Secondary alcohol","class":56}
+{"pattern":"[CX4;H0][OX2H]","name":"Tertiary alcohol","class":57}
+{"pattern":"[c;H0;D3][OX2H]","name":"Aromatic alcohol","class":58}
+{"pattern":"[C;$(C=C)][OX2H]","name":"Enol","class":59}
+{"pattern":"[NX3;H2;!$(NC=O);+0]","name":"Primary amine","class":60}
+{"pattern":"[NX3;H1;!$(NC=O);+0]","name":"Secondary amine","class":61}
+{"pattern":"[NX3;H0;!$(NC=O);!$([NX3+](=O)[O-]);+0]","name":"Tertiary amine","class":62}
+{"pattern":"[OX2][OX2]","name":"Peroxide","class":63}
+{"pattern":"S([#6])[CX3](=O)[#6]","name":"Carbo-thioester","class":64}
+{"pattern":"[#6X3](=[SX1])([!N])[!N]","name":"Thiocarbonyl","class":65}
+{"pattern":"[c;H0;D3]-[#16;X2;H1]","name":"Aromatic thiol","class":66}
+{"pattern":"[CX4][#16;X2;H1]","name":"Aliphatic thiol","class":67}
+{"pattern":"[!#16]-[S;D2;H0;+0]-[!#16]","name":"Monosulfide","class":68}
+{"pattern":"[#16X2H0][#16X2H0]","name":"Disulfide","class":69}
+{"pattern":"[$([#16X3](=[OX1])[OX2H0]),$([#16X3+]([OX1-])[OX2H0])]","name":"Sulfinate","class":70}
+{"pattern":"[#6]-[S;H0;D4;+0](=[O;H0;D1;+0])(=[O;H0;D1;+0])-[F,Cl,Br,I]","name":"Sulfonyl halide","class":71}
+{"pattern":"[$([#16X4](=[OX1])(=[OX1])([#6])[#6]),$([#16X4+2]([OX1-])([OX1-])([#6])[#6])]","name":"Sulfone","class":72}
+{"pattern":"[$([#16X4](=[OX1])(=[OX1])([#6])[OX2H,OX1H0-]),$([#16X4+2]([OX1-])([OX1-])([#6])[OX2H,OX1H0-])]","name":"Sulfonic acid","class":73}
+{"pattern":"[$([#16X4](=[OX1])(=[OX1])([#6])[OX2H0]),$([#16X4+2]([OX1-])([OX1-])([#6])[OX2H0])]","name":"Sulfonate","class":74}
+{"pattern":"[$([#16X3](=[OX1])([#6])[#6]),$([#16X3+]([OX1-])([#6])[#6])]","name":"Sulfoxide","class":75}
+{"pattern":"[$([#16X4](=[OX1])(=[OX1])([OX2H,OX1H0-])[OX2][#6]),$([#16X4+2]([OX1-])([OX1-])([OX2H,OX1H0-])[OX2][#6])]","name":"Sulfate","class":76}
+{"pattern":"[$([#16X4]([NX3])(=[OX1])(=[OX1])[OX2][#6]),$([#16X4+2]([NX3])([OX1-])([OX1-])[OX2][#6])]","name":"Sulfamate","class":77}
+{"pattern":"[$([#16X4]([NX3])(=[OX1])(=[OX1])[OX2H,OX1H0-]),$([#16X4+2]([NX3])([OX1-])([OX1-])[OX2H,OX1H0-])]","name":"Sulfamic acid","class":78}
+{"pattern":"[#16X2][OX2H,OX1H0-]","name":"Sulfenic acid","class":79}
+{"pattern":"[#6]-[S;H0;D3;+0](=[O;H0;D1;+0])-[O;H1;D1;+0]","name":"Sulfinic acid","class":80}
+{"pattern":"[#16X2][OX2H0]","name":"Sulfenate","class":81}
+{"pattern":"[*]-[S;H0;D2;+0]-[C;H0;D2;+0]#[N;H0;D1;+0]","name":"Thiocyanate","class":82}
+{"pattern":"[*]-[N;H0;D2;+0]=[C;H0;D2;+0]=[S;H0;D1;+0]","name":"Isothiocyanate","class":83}
+{"pattern":"[#6;+0]-[B;H0;D3;+0](-[O;H1;D1;+0])-[O;H1;D1;+0]","name":"Boronic acid","class":84}
+{"pattern":"[#6;$([#6]:[#6]),$([#6]=[#6]),$([#6]#[#6]);+0]-[B;H0;D3;+0]1-[O;H0;D2;+0]-[#6;+0]~[#6;0]-[O;H0;D2;+0]1","name":"Boronic ester","class":85}
+{"pattern":"[CX2]#[CX2]","name":"Alkyne","class":86}
+{"pattern":"[CX3;H2;+0]=[CX3;H1;+0]-[CX4;H2;+0]","name":"Allyl","class":87}
+{"pattern":"[CX3;H2;+0]=[CX3;!H2;+0]","name":"Vinyl","class":88}
+{"pattern":"[CX3]=[C;H0;D2;+0]=[CX3]","name":"Allene","class":89}
+{"pattern":"[CX3;+0]=[CX3;H1;+0]-[CX3;H1;+0]=[CX3;+0]","name":"Conjugated diene","class":90}
+{"pattern":"[C;H2;D1;+0]=[C;H2;D1;+0]","name":"Ethylene","class":91}
+{"pattern":"[C;H1;D1;+0]#[C;H1;D1;+0]","name":"Acetylene","class":92}
+{"pattern":"[O;H0;D1]=[C;H0;D2]=[O;H0;D1]","name":"Carbon dioxide","class":93}
+{"pattern":"[O;H0;D1;+1]#[C;H0;D1;-1]","name":"Carbon monoxide","class":94}
+{"pattern":"[C;H3;D1;+0]-[O;H1;D1;+0]","name":"Methanol","class":95}
+{"pattern":"[#6X3;!H2]=[NX2;+0]-[O;H1;D1;+0]","name":"Oxime","class":96}
+{"pattern":"[O;D2;+0]-[Si;D4;H0](-[C;H3;D1;+0])(-[C;H3;D1;+0])-[C;H0;D4;+0](-[C;H3;D1;+0])(-[C;H3;D1;+0])-[C;H3;D1;+0]","name":"TMS ether protective group","class":97}
+{"pattern":"[Si;D4;+0]","name":"Silyl protective group","class":98}
+{"pattern":"[CX4;!H2;R](-[O,S;D2;R])-[O,S;D2;R]","name":"Acetal\/Ketal","class":99}
+{"pattern":"[C;H3;D1;+0]-[C;H0;D4;+0](-[C;H3;D1;+0])(-[C;H3;D1;+0])-[O;H0;D2;+0]-[C;H0;D3;+0](=[O;H0;D1;+0])","name":"Boc","class":100}
+{"pattern":"[CX4;+0]-[Li]","name":"Alkyl lithium","class":101}
+{"pattern":"[#6;+0]-[Si;H3;+0]","name":"Silane","class":102}
+{"pattern":"[P;D4;H0;+0](=[O;H0;D1;+0])(-[O;H1;D1;+0])(-[O;H1;D1;+0])-[O;H0;D2;+0]","name":"Phosphate ester","class":103}
+{"pattern":"[Zn]-[Cl,Br,I]","name":"Zinc halide","class":104}
+{"pattern":"[SnX4]","name":"Tin","class":105}
+{"pattern":"[c]-[Li]","name":"Aryl lithium","class":106}
