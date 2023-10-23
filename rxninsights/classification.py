@@ -30,7 +30,7 @@ class ReactionClassifier:
         self.num_products = len(self.sanitized_reaction.split(">>")[1].split("."))
         try:
             self.atom_mapping_index, self.atoms_diagonal, \
-            self.mapping_diagonal, self.matrix_size = self.get_atom_mapping_indices()
+                self.mapping_diagonal, self.matrix_size = self.get_atom_mapping_indices()
         except ValueError:
             raise ValueError("This reaction cannot be parsed, because no transformation is detected. "
                              "Possibly, this is a resolution but RxnInsights cannot yet handle enantiomers.")
