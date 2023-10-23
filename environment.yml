@@ -1,4 +1,4 @@
-name: rxninsights
+name: rxn_insight
 channels:
   - conda-forge
   - anaconda

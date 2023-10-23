@@ -1,5 +1,5 @@
-from rxninsights.utils import *
-from rxninsights.classification import ReactionClassifier
+from rxn_insight.utils import *
+from rxn_insight.classification import ReactionClassifier
 
 
 class Reaction:
