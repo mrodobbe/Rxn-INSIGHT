@@ -40,7 +40,8 @@ class ReactionClassifier:
         self.transformation_matrix, self.reaction_center_atoms, self.transformation_mapping = self.sanitize_r_matrix()
         self.removed_metals = False
         self.removed_halogens = False
-        self.sanitized_transformation_matrix, self.sanitized_reaction_center, self.sanitized_transformation_mapping = self.remove_metals_and_halogens()
+        self.sanitized_transformation_matrix, self.sanitized_reaction_center, \
+            self.sanitized_transformation_mapping = self.remove_metals_and_halogens()
         self.nos_reaction_center = self.check_nos()
         self.ring_change = self.ring_changing()
         self.product_map_dict = get_map_index(self.mol_product)
