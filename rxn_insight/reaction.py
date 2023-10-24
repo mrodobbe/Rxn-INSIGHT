@@ -175,7 +175,7 @@ class Reaction:
             raise KeyError(f"Fingerprint choice {fp} is not supported. Select either MACCS or Morgan.")
         if len(fps) == 0:
             fps = [get_fp(r, fp, concatenate)
-                   for r in tqdm(df_tag["REACTION"].tolist(), dec="Creating fingerprints...")]
+                   for r in tqdm(df_tag["REACTION"].tolist(), desc="Creating fingerprints...")]
         rxnfp = get_fp(self.reaction, fp, concatenate)
 
         sims = [get_similarity(rxnfp, fp) for fp in tqdm(fps, desc="Calculating Tanimoto similarity")]
