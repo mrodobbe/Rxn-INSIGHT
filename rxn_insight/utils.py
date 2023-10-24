@@ -250,7 +250,7 @@ def extract_from_reaction(reaction: dict, radius_reactants: int = 2, radius_prod
             print(reaction['_id'])
         return {'reaction_id': reaction['_id']}
 
-    # Put together and canonicalize (as best as possible)
+    # Put together and canonicalize (as good as possible)
     rxn_string = '{}>>{}'.format(reactant_fragments, product_fragments)
     rxn_canonical = canonicalize_transform(rxn_string)
     # Change from inter-molecular to intra-molecular
