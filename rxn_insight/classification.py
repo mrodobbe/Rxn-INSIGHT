@@ -825,11 +825,12 @@ class ReactionClassifier:
             carbonyl_c = -1
             acyl = False
             for idx in self.reaction_center_idx:
-                atom = self.mol_product.GetAtomWithIdx(idx)
+                mp = Chem.MolFromSmiles(self.products)
+                atom = mp.GetAtomWithIdx(idx)
                 if atom.GetAtomicNum() == 6:
                     for nb in atom.GetNeighbors():
                         if nb.GetAtomicNum() == 8:
-                            b = self.mol_product.GetBondBetweenAtoms(idx, nb.GetIdx())
+                            b = mp.GetBondBetweenAtoms(idx, nb.GetIdx())
                             bo = b.GetBondTypeAsDouble()
                             if bo == 2:
                                 atom_map = atom.GetAtomMapNum()
@@ -846,16 +847,18 @@ class ReactionClassifier:
                                 if nbb.GetIdx() == idx:
                                     continue
                                 else:
-                                    b = self.mol_product.GetBondBetweenAtoms(nbb.GetIdx(), nb.GetIdx())
+                                    b = mp.GetBondBetweenAtoms(nbb.GetIdx(), nb.GetIdx())
                                     bo = b.GetBondTypeAsDouble()
                                     if bo == 2:
-                                        carbonyl_c = self.atom_mapping_index[nb.GetAtomMapNum()]
-                                        acyl = True
+                                        atom_map = nb.GetAtomMapNum()
+                                        if atom_map in self.atom_mapping_index:
+                                            carbonyl_c = self.atom_mapping_index[atom_map]
+                                            acyl = True
                                         break
                         else:
                             continue
                 if acyl:
-                    carbamate = self.mol_product.GetSubstructMatches(
+                    carbamate = mp.GetSubstructMatches(
                         Chem.MolFromSmarts("[O;H0;D2;+0]-[C;H0;D3;+0](=[O;H0;D1;+0])-[NX3;+0]"))
                     rcid = np.array(self.reaction_center_idx)
                     for tup in carbamate:
@@ -870,7 +873,7 @@ class ReactionClassifier:
                     for tup in ester_reactant:
                         cid = np.array(list(tup))
                         carboxyl_in_rcr = rcid[np.in1d(rcid, cid)]
-                        ester_products = self.mol_product.GetSubstructMatches(
+                        ester_products = mp.GetSubstructMatches(
                             Chem.MolFromSmarts("[OX2;+0]-[C;H0;D3;+0](=[O;H0;D1;+0])-[#6;!H3]"))
                         for tup in ester_products:
                             cid = np.array(list(tup))
