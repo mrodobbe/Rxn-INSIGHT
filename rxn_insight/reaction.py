@@ -1,3 +1,4 @@
+import os
 from rxn_insight.utils import *
 from rxn_insight.classification import ReactionClassifier
 
@@ -77,7 +78,8 @@ class Reaction:
 
     def get_functional_groups(self):
         if self.fg_db is None:
-            self.fg_db = pd.read_json('json/functional_groups.json', orient='records', lines=True)
+            fname = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'json/functional_groups.json'))
+            self.fg_db = pd.read_json(fname, orient='records', lines=True)
         c = self.classifier
         return tuple([c.get_functional_groups(c.mol_reactant, c.reactant_map_dict, self.fg_db),
                       c.get_functional_groups(c.mol_product, c.product_map_dict, self.fg_db)])
@@ -93,13 +95,15 @@ class Reaction:
 
     def get_name(self):
         if self.smirks_db is None:
-            self.smirks_db = curate_smirks(pd.read_json('json/smirks.json', orient='records', lines=True))
+            sname = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'json/smirks.json'))
+            self.smirks_db = curate_smirks(pd.read_json(sname, orient='records', lines=True))
         self.name = self.classifier.name_reaction(self.smirks_db)
         return self.name
 
     def get_reaction_info(self):
         if self.fg_db is None:
-            self.fg_db = pd.read_json('json/functional_groups.json', orient='records', lines=True)
+            fname = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'json/functional_groups.json'))
+            self.fg_db = pd.read_json(fname, orient='records', lines=True)
 
         info_dict = self.classifier.get_reaction_center_info(self.fg_db)
         self.tag = info_dict["TAG"]
