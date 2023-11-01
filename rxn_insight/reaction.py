@@ -161,19 +161,19 @@ class Reaction:
         fps = []
         if fp.lower() == "maccs" and concatenate:
             if "rxn_str_patt_fp" in df_tag:
-                fps = [np.array(DataStructs.CreateFromBitString(fp))
+                fps = [np.fromiter(fp, dtype=np.int64)
                        for fp in tqdm(df_tag["rxn_str_patt_fp"].tolist(), desc="Loading fingerprints...")]
         elif fp.lower() == "maccs" and not concatenate:
             if "rxn_dif_patt_fp" in df_tag:
-                fps = [np.array(DataStructs.CreateFromBitString(fp))
+                fps = [np.fromiter(fp, dtype=np.int64)
                        for fp in tqdm(df_tag["rxn_dif_patt_fp"].tolist(), desc="Loading fingerprints...")]
         elif fp.lower() == "morgan" and concatenate:
             if "rxn_str_morgan_fp" in df_tag:
-                fps = [np.array(DataStructs.CreateFromBitString(fp))
+                fps = [np.fromiter(fp, dtype=np.int64)
                        for fp in tqdm(df_tag["rxn_str_morgan_fp"].tolist(), desc="Loading fingerprints...")]
         elif fp.lower() == "morgan" and not concatenate:
             if "rxn_dif_morgan_fp" in df_tag:
-                fps = [np.array(DataStructs.CreateFromBitString(fp))
+                fps = [np.fromiter(fp, dtype=np.int64)
                        for fp in tqdm(df_tag["rxn_dif_morgan_fp"].tolist(), desc="Loading fingerprints...")]
         else:
             raise KeyError(f"Fingerprint choice {fp} is not supported. Select either MACCS or Morgan.")
