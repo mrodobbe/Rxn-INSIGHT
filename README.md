@@ -1,4 +1,4 @@
-# Fast Chemical Reaction Condition Suggestion via Rule-Based Classification and Similarity Search
+# Rxn-INSIGHT: Fast Chemical Reaction Analysis Using Bond-Electron Matrices
 
 Rxn-INSIGHT is an open-source algorithm, written in python, to classify and name chemical reactions, and suggest reaction conditions based on similarity and popularity.
 
@@ -66,5 +66,9 @@ suggested_reagents = rxn.suggested_reagent
 ```
 
 ## 3. Datasets
+The complete USPTO dataset that is analyzed by Rxn-INSIGHT, 
+as described in the manuscript, can be found on 
+Zenodo: https://doi.org/10.5281/zenodo.10171745. 
+The `gzip` file should be downloaded and placed in the folder `data/`.
 
 ## 4. Reference
