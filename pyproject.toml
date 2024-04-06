@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rxn-insight"
+version = "0.0.1"
+authors = [
+  { name="Example Author", email="author@example.com" },
+]
+description = "A small example package"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "rxnmapper>=0.3.0",
+    "rdchiral>=1.1.0",
+    "pandas",
+    "pyarrow>=15.0.2",
+    "numpy"
+]
+
+[tool.hatch.build]
+packages = ["src/rxn_insight"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"src/rxn_insight/json" = "rxn_insight/json"

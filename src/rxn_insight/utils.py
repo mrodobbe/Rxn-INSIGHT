@@ -404,9 +404,9 @@ def curate_smirks(df: pd.DataFrame):
     df["nproduct"] = 0
     for i in df.index:
         reactants = df["smirks"][i].split(">>")[0]
-        df["nreact"][i] = len(reactants.split("."))
+        df.loc[i, "nreact"] = len(reactants.split("."))
         products = df["smirks"][i].split(">>")[1]
-        df["nproduct"][i] = len(products.split("."))
+        df.loc[i, "nproduct"] = len(products.split("."))
     return df
 
 
