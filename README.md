@@ -1,5 +1,7 @@
 # Rxn-INSIGHT: Fast Chemical Reaction Analysis Using Bond-Electron Matrices
 
+![Coverage Status](https://raw.githubusercontent.com/pschwllr/ch200/main/coverage-badge.svg)
+
 Rxn-INSIGHT is an open-source algorithm, written in python, to classify and name chemical reactions, and suggest reaction conditions based on similarity and popularity.
 
 ## 1. Installation
@@ -8,14 +10,19 @@ Rxn-INSIGHT relies on NumPy, Pandas, RDKit, RDChiral, and RXNMapper.
 A virtual environment can be installed with Anaconda as follows:
 
 ```console
-conda env create -f environment.yml
+conda create -n rxn-insight python=3.10
 conda activate rxn-insight
 ```
 
-To add the rxn-insight environment to Jupyter Notebook:
+```
+git clone https://github.com/schwallergroup/Rxn-INSIGHT.git
+cd Rxn-INSIGHT
+pip install .
+```
 
-```console
-python -m ipykernel install --user --name=rxn-insight
+Or, for developing with the optional dependencies:
+``` 
+pip install -e ".[test,doc]"
 ```
 
 ## 2. Usage
