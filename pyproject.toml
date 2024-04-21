@@ -1,31 +1,127 @@
-[build-system]
+[build-system] 
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "rxn-insight"
-version = "0.0.1"
-authors = [
-  { name="Example Author", email="author@example.com" },
-]
-description = "A small example package"
+name = "rxn_insight"
 readme = "README.md"
 requires-python = ">=3.8"
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-]
+license = {file = "LICENSE"}
+description = "RXN insight package"
 dependencies = [
+    "rdkit",
     "rxnmapper>=0.3.0",
     "rdchiral>=1.1.0",
     "pandas",
     "pyarrow>=15.0.2",
-    "numpy"
+    "numpy",
+    "tqdm",
+]
+authors = [
+    {name = "Maarten R. Dobbelaere", email = "mrodobbe.dobbelaere@ugent.be"},
+    {name = "Philippe Schwaller", email = "philippe.schwaller@epfl.ch"},
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+dynamic = ["version"]
+
+[project.urls]
+source = "https://github.com/schwallergroup/rxn-insight"
+tracker = "https://github.com/schwallergroup/rxn-insight/issues"
+# documentation = "https://rxn-insight.readthedocs.io"
+
+[project.optional-dependencies]
+test = [
+    "mypy",
+    "hypothesis",
+    "pytest",
+    "pytest-cov",
+    "tox",
+]
+doc = [
+    "furo",
+    "myst-parser",
+    "sphinx>=5",
+    "sphinx-copybutton",
 ]
 
-[tool.hatch.build]
-packages = ["src/rxn_insight"]
+[tool.hatch.version]
+path = "src/rxn_insight/__about__.py"
 
-[tool.hatch.build.targets.wheel.force-include]
-"src/rxn_insight/json" = "rxn_insight/json"
+[tool.ruff]
+show-fixes = true
+
+[tool.ruff.lint]
+select = [
+    "F",  # Pyflakes
+    "E",  # Pycodestyle
+    "W",  # Pycodestyle
+    "D",  # Pydocstyle
+    "UP",  # pyupgrade
+    "I",  # isort
+    "PL",  # Pylint
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*" = ["D", "PLR2004"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.mypy]
+python_version = "3.10"
+warn_redundant_casts = true
+warn_unused_configs = true
+pretty = true
+show_error_codes = true
+show_error_context = true
+show_column_numbers = true
+
+disallow_any_generics = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_unused_ignores = true
+warn_return_any = true
+no_implicit_reexport = true
+
+# More strict checks for library code
+[[tool.mypy.overrides]]
+module = "rxn_insight.*"
+disallow_untyped_defs = true
+ignore_missing_imports = true
+disable_error_code = ["assignment", "import-untyped", "no-any-return"]
+
+# Ignore certain missing imports
+# [[tool.mypy.overrides]]
+# module = "thirdparty.*"
+# ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+]
+
+[tool.coverage.run]
+omit = [
+    '__about__.py'
+]
+
+
+[tool.coverage.report]
+exclude_also = [
+    "if __name__ == .__main__.:",
+]

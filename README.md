@@ -21,7 +21,7 @@ python -m ipykernel install --user --name=rxn-insight
 ## 2. Usage
 
 ### Basic Usage
-```console
+```python
 from rxn_insight.reaction import Reaction
 r = "c1ccccc1I.C=CC(=O)OC>>COC(=O)/C=C/c1ccccc1"  # Define a Reaction SMILES identifier
 rxn = Reaction(r)
@@ -29,7 +29,7 @@ ri = rxn.get_reaction_info()
 ```
 
 The reaction info contains most of the information:
-```console
+```python
 {'REACTION': 'C=CC(=O)OC.Ic1ccccc1>>COC(=O)/C=C/c1ccccc1', 
  'MAPPED_REACTION': '[CH3:1][O:2][C:3](=[O:4])[CH:5]=[CH2:6].I[c:7]1[cH:8][cH:9][cH:10][cH:11][cH:12]1>>[CH3:1][O:2][C:3](=[O:4])/[CH:5]=[CH:6]/[c:7]1[cH:8][cH:9][cH:10][cH:11][cH:12]1', 
  'N_REACTANTS': 2, 
@@ -52,13 +52,13 @@ The reaction info contains most of the information:
 
 ### Similarity Search
 A similarity search can be performed when a database with similar reactions is provided as a pandas DataFrame (df in this case). Another Pandas DataFrame is returned.
-```console
+```python
 df_nbs = rxn.find_neighbors(df, fp="MACCS", concatenate=True, threshold=0.5, broaden=True, full_search=False)
 ```
 
 ### Condition Suggestion
 Reaction conditions can be suggested when a Pandas DataFrame is provided.
-```console
+```python
 rxn.suggest_conditions(df)
 suggested_solvents = rxn.suggested_solvent
 suggested_catalysts = rxn.suggested_catalyst

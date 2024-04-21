@@ -1,17 +1,46 @@
-import os
-from rxn_insight.utils import *
+import hashlib
+import warnings
+from typing import Dict, List, Optional
+
+import numpy as np
+import pandas as pd
+from rdkit import Chem
+from rxnmapper import RXNMapper
+from tqdm import tqdm
+
 from rxn_insight.classification import ReactionClassifier
+from rxn_insight.utils import (
+    atom_remover,
+    curate_smirks,
+    get_catalyst_ranking,
+    get_fp,
+    get_reagent_ranking,
+    get_ring_systems,
+    get_scaffold,
+    get_similarity,
+    get_solvent_ranking,
+    maccs_fp,
+    morgan_fp,
+    remove_atom_mapping,
+    sanitize_ring,
+)
 
 
 class Reaction:
+    """This class reads in reaction SMILES."""
 
-    """
-    This class reads in reaction SMILES.
-
-    """
-
-    def __init__(self, reaction: str, solvent: str = "", reagent: str = "", catalyst: str = "", ref: str = "",
-                 rxn_mapper=None, keep_mapping: bool = False, smirks: pd.DataFrame = None, fg: pd.DataFrame = None):
+    def __init__(
+        self,
+        reaction: str,
+        solvent: str = "",
+        reagent: str = "",
+        catalyst: str = "",
+        ref: str = "",
+        rxn_mapper: Optional[RXNMapper] = None,
+        keep_mapping: bool = False,
+        smirks: pd.DataFrame = None,
+        fg: pd.DataFrame = None,
+    ):
         self.reaction = ""
         self.solvent = solvent
         self.reagent = reagent
@@ -19,28 +48,32 @@ class Reaction:
         self.reference = ref
         self.read_reaction(reaction)
         if ":" in self.reaction and not keep_mapping:
-            self.reaction = remove_atom_mapping(self.reaction)  # Remove atom mapping for consistency
+            self.reaction = remove_atom_mapping(
+                self.reaction
+            )  # Remove atom mapping for consistency
         else:
             self.reaction = self.reaction
         self.smirks_db = smirks
         self.fg_db = fg
-        self.classifier = ReactionClassifier(reaction, rxn_mapper=rxn_mapper, keep_mapping=keep_mapping)
+        self.classifier = ReactionClassifier(
+            reaction, rxn_mapper=rxn_mapper, keep_mapping=keep_mapping
+        )
         self.add_agents()
         self.reactants, self.products = self.classifier.sanitized_reaction.split(">>")
         self.mapped_reaction = self.classifier.sanitized_mapped_reaction
         self.reaction_class = ""
         self.template = self.classifier.template
-        self.reaction_info = dict()
+        self.reaction_info: Dict[str, tuple[str, ...] | str] = dict()
         self.tag = ""
         self.name = ""
-        self.byproducts = tuple()
+        self.byproducts: tuple[str, ...] = tuple()
         self.scaffold = self.get_scaffold()
         self.neighbors = None
         self.suggested_solvent = ""
         self.suggested_catalyst = ""
         self.suggested_reagent = ""
 
-    def read_reaction(self, reaction: str):
+    def read_reaction(self, reaction: str) -> None:
         reaction_elements = reaction.split(">")
         self.reaction = f"{reaction_elements[0]}>>{reaction_elements[2]}"
         reagents = reaction_elements[1].split(".")
@@ -57,73 +90,98 @@ class Reaction:
                     agents.append(reagent)
             self.reagent = ".".join(agents)
 
-    def add_agents(self):
+    def add_agents(self) -> None:
         reagents = self.reagent.split(".")
         reagents += self.classifier.extra_agents
         self.reagent = ".".join(reagents)
 
-    def get_class(self):
+    def get_class(self) -> str:
         self.reaction_class = self.classifier.classify_reaction()
         return self.reaction_class
 
-    def get_rings_in_products(self):
+    def get_rings_in_products(self) -> list[str]:
         return self.classifier.get_ring_type(self.classifier.mol_product)
 
-    def get_rings_in_reactants(self):
+    def get_rings_in_reactants(self) -> list[str]:
         return self.classifier.get_ring_type(self.classifier.mol_reactant)
 
-    def get_rings_in_reaction_center(self):
-        return tuple([self.classifier.get_ring_type(self.classifier.mol_reactant, self.classifier.reactant_map_dict),
-                      self.classifier.get_ring_type(self.classifier.mol_product, self.classifier.product_map_dict)])
+    def get_rings_in_reaction_center(
+        self,
+    ) -> tuple[list[str], ...]:
+        return tuple(
+            [
+                self.classifier.get_ring_type(
+                    self.classifier.mol_reactant, self.classifier.reactant_map_dict
+                ),
+                self.classifier.get_ring_type(
+                    self.classifier.mol_product, self.classifier.product_map_dict
+                ),
+            ]
+        )
 
-    def get_functional_groups(self):
+    def get_functional_groups(self) -> tuple[List[str], ...]:
         if self.fg_db is None:
             from importlib import resources
-            with resources.path(f'{__package__}.json', 'functional_groups.json') as path:
-                self.fg_db = pd.read_json(path, orient='records', lines=True)
-        c = self.classifier
-        return tuple([c.get_functional_groups(c.mol_reactant, c.reactant_map_dict, self.fg_db),
-                      c.get_functional_groups(c.mol_product, c.product_map_dict, self.fg_db)])
 
-    def get_byproducts(self):
+            with resources.path(
+                f"{__package__}.json", "functional_groups.json"
+            ) as path:
+                self.fg_db = pd.read_json(path, orient="records", lines=True)
+        c = self.classifier
+        return tuple(
+            [
+                c.get_functional_groups(
+                    c.mol_reactant, c.reactant_map_dict, self.fg_db
+                ),
+                c.get_functional_groups(c.mol_product, c.product_map_dict, self.fg_db),
+            ]
+        )
+
+    def get_byproducts(self) -> List[str]:
         fg_r, fg_p = self.get_functional_groups()
         byproducts = self.classifier.balance_reaction(fg_r, fg_p)
         self.byproducts = byproducts
         return byproducts
 
-    def get_scaffold(self):
+    def get_scaffold(self) -> Optional[str]:
         return get_scaffold(self.classifier.mol_product)
 
-    def get_name(self):
+    def get_name(self) -> str:
         if self.smirks_db is None:
             from importlib import resources
-            with resources.path(f'{__package__}.json', 'smirks.json') as path:
-                self.smirks_db = curate_smirks(pd.read_json(path, orient='records', lines=True))
+
+            with resources.path(f"{__package__}.json", "smirks.json") as path:
+                self.smirks_db = curate_smirks(
+                    pd.read_json(path, orient="records", lines=True)
+                )
         self.name = self.classifier.name_reaction(self.smirks_db)
         return self.name
 
-    def get_reaction_info(self):
+    def get_reaction_info(self) -> Dict[str, list[str] | str]:
         if self.fg_db is None:
             from importlib import resources
-            with resources.path(f'{__package__}.json', 'functional_groups.json') as path:
-                self.fg_db = pd.read_json(path, orient='records', lines=True)
+
+            with resources.path(
+                f"{__package__}.json", "functional_groups.json"
+            ) as path:
+                self.fg_db = pd.read_json(path, orient="records", lines=True)
 
         info_dict = self.classifier.get_reaction_center_info(self.fg_db)
         self.tag = info_dict["TAG"]
         self.reaction_class = info_dict["CLASS"]
 
         try:
-            info_dict["SOLVENT"] = tuple(self.solvent.split("."))
+            info_dict["SOLVENT"] = self.solvent.split(".")
         except AttributeError:
-            info_dict["SOLVENT"] = tuple([])
+            info_dict["SOLVENT"] = []
         try:
-            info_dict["REAGENT"] = tuple(self.reagent.split("."))
+            info_dict["REAGENT"] = self.reagent.split(".")
         except AttributeError:
-            info_dict["REAGENT"] = tuple([])
+            info_dict["REAGENT"] = []
         try:
-            info_dict["CATALYST"] = tuple(self.catalyst.split("."))
+            info_dict["CATALYST"] = self.catalyst.split(".")
         except AttributeError:
-            info_dict["CATALYST"] = tuple([])
+            info_dict["CATALYST"] = []
         try:
             info_dict["REF"] = self.reference
         except AttributeError:
@@ -143,11 +201,19 @@ class Reaction:
 
         return info_dict
 
-    def get_reaction_center(self):
+    def get_reaction_center(self) -> Optional[str]:
         return self.classifier.template_smiles
 
-    def find_neighbors(self, df, fp="MACCS", concatenate=True, max_return=100,
-                       threshold=0.3, broaden=False, full_search=False):
+    def find_neighbors(
+        self,
+        df: pd.DataFrame,
+        fp: str = "MACCS",
+        concatenate: bool = True,
+        max_return: int = 100,
+        threshold: float = 0.3,
+        broaden: bool = False,
+        full_search: bool = False,
+    ) -> pd.DataFrame:
         self.get_reaction_info()
         if full_search:
             warnings.warn("Full database search is activated. This may take long.")
@@ -164,28 +230,57 @@ class Reaction:
         fps = []
         if fp.lower() == "maccs" and concatenate:
             if "rxn_str_patt_fp" in df_tag:
-                fps = [np.fromiter(fp, dtype=np.int64)
-                       for fp in tqdm(df_tag["rxn_str_patt_fp"].tolist(), desc="Loading fingerprints...")]
+                fps = [
+                    np.fromiter(fp, dtype=np.int64)
+                    for fp in tqdm(
+                        df_tag["rxn_str_patt_fp"].tolist(),
+                        desc="Loading fingerprints...",
+                    )
+                ]
         elif fp.lower() == "maccs" and not concatenate:
             if "rxn_dif_patt_fp" in df_tag:
-                fps = [np.fromiter(fp, dtype=np.int64)
-                       for fp in tqdm(df_tag["rxn_dif_patt_fp"].tolist(), desc="Loading fingerprints...")]
+                fps = [
+                    np.fromiter(fp, dtype=np.int64)
+                    for fp in tqdm(
+                        df_tag["rxn_dif_patt_fp"].tolist(),
+                        desc="Loading fingerprints...",
+                    )
+                ]
         elif fp.lower() == "morgan" and concatenate:
             if "rxn_str_morgan_fp" in df_tag:
-                fps = [np.fromiter(fp, dtype=np.int64)
-                       for fp in tqdm(df_tag["rxn_str_morgan_fp"].tolist(), desc="Loading fingerprints...")]
+                fps = [
+                    np.fromiter(fp, dtype=np.int64)
+                    for fp in tqdm(
+                        df_tag["rxn_str_morgan_fp"].tolist(),
+                        desc="Loading fingerprints...",
+                    )
+                ]
         elif fp.lower() == "morgan" and not concatenate:
             if "rxn_dif_morgan_fp" in df_tag:
-                fps = [np.fromiter(fp, dtype=np.int64)
-                       for fp in tqdm(df_tag["rxn_dif_morgan_fp"].tolist(), desc="Loading fingerprints...")]
+                fps = [
+                    np.fromiter(fp, dtype=np.int64)
+                    for fp in tqdm(
+                        df_tag["rxn_dif_morgan_fp"].tolist(),
+                        desc="Loading fingerprints...",
+                    )
+                ]
         else:
-            raise KeyError(f"Fingerprint choice {fp} is not supported. Select either MACCS or Morgan.")
+            raise KeyError(
+                f"Fingerprint choice {fp} is not supported. Select either MACCS or Morgan."
+            )
         if len(fps) == 0:
-            fps = [get_fp(r, fp, concatenate)
-                   for r in tqdm(df_tag["REACTION"].tolist(), desc="Creating fingerprints...")]
+            fps = [
+                get_fp(r, fp, concatenate)
+                for r in tqdm(
+                    df_tag["REACTION"].tolist(), desc="Creating fingerprints..."
+                )
+            ]
         rxnfp = get_fp(self.reaction, fp, concatenate)
 
-        sims = [get_similarity(rxnfp, fp) for fp in tqdm(fps, desc="Calculating Tanimoto similarity")]
+        sims = [
+            get_similarity(rxnfp, fp)
+            for fp in tqdm(fps, desc="Calculating Tanimoto similarity")
+        ]
         df_tag["SIMILARITY"] = sims
         df_tag = df_tag.sort_values(by="SIMILARITY", ascending=False)
         df_tag["SOLVENT"].fillna("", inplace=True)
@@ -193,7 +288,9 @@ class Reaction:
         df_tag["REAGENT"].fillna("", inplace=True)
         max_similarity = df_tag["SIMILARITY"].max()
         df_tag = df_tag[df_tag["SIMILARITY"] > threshold].copy()
-        print(f"Reaction found with similarity of {max_similarity:.3f}. This will be our best match.")
+        print(
+            f"Reaction found with similarity of {max_similarity:.3f}. This will be our best match."
+        )
         df_return = df_tag.iloc[:max_return].copy()
         if "rxn_str_patt_fp" in df_return.keys():
             df_return = df_return.drop(columns=["rxn_str_patt_fp"])
@@ -212,7 +309,7 @@ class Reaction:
 
         return df_return
 
-    def give_broad_tag(self):
+    def give_broad_tag(self) -> str:
         rxn_info = self.reaction_info
         tag = f"{rxn_info['CLASS']} "
         try:
@@ -225,11 +322,11 @@ class Reaction:
             fg_p = ""
         tag += " ".join(fg_r) + " "
         tag += " ".join(fg_p)
-        tag = tag.encode("UTF-8")
-        hashtag = hashlib.sha256(tag).hexdigest()
+        tag_bytes = tag.encode("UTF-8")
+        hashtag = hashlib.sha256(tag_bytes).hexdigest()
         return str(hashtag)
 
-    def suggest_conditions(self, df: pd.DataFrame):
+    def suggest_conditions(self, df: pd.DataFrame) -> Dict[str, pd.DataFrame]:
         if self.neighbors is None or len(self.neighbors.index) == 0:
             nbs = self.find_neighbors(df, max_return=5000, threshold=0.3, broaden=True)
         else:
@@ -242,9 +339,11 @@ class Reaction:
         reagent_rank = get_reagent_ranking(nbs)
         reagent_rank = reagent_rank.copy().sort_values(by="COUNT", ascending=False)
 
-        conditions_dict = {"Solvent": solvent_rank["NAME"][solvent_rank.index[0]],
-                           "Catalyst": catalyst_rank["NAME"][catalyst_rank.index[0]],
-                           "Reagent": reagent_rank["NAME"][reagent_rank.index[0]]}
+        conditions_dict = {
+            "Solvent": solvent_rank["NAME"][solvent_rank.index[0]],
+            "Catalyst": catalyst_rank["NAME"][catalyst_rank.index[0]],
+            "Reagent": reagent_rank["NAME"][reagent_rank.index[0]],
+        }
         self.suggested_solvent = solvent_rank
         self.suggested_catalyst = catalyst_rank
         self.suggested_reagent = reagent_rank
@@ -253,11 +352,7 @@ class Reaction:
 
 
 class Molecule:
-
-    """
-    This class reads in SMILES.
-
-    """
+    """This class reads in SMILES."""
 
     def __init__(self, smi: str):
         self.mol = Chem.MolFromSmiles(smi)
@@ -265,13 +360,13 @@ class Molecule:
         self.inchi = Chem.MolToInchi(self.mol)
         self.inchikey = Chem.MolToInchiKey(self.mol)
         self.functional_groups = None
-        self.rings = tuple()
+        # self.rings = tuple() # Seems to be unused
         self.scaffold = get_scaffold(self.mol)
         self.maccs_fp = maccs_fp(self.mol)
         self.morgan_fp = morgan_fp(self.mol)
         self.reactions = None
 
-    def search_reactions(self, df: pd.DataFrame):
+    def search_reactions(self, df: pd.DataFrame) -> pd.DataFrame:
         if "PRODUCT" in df.keys():
             dfc = df[df["PRODUCT"] == self.inchikey].copy()
         else:
@@ -305,23 +400,34 @@ class Molecule:
 
         return dfc
 
-    def search_reactions_by_scaffold(self, df: pd.DataFrame, threshold: float = 0.5,
-                                     max_return: int = 100, fp: str = "MACCS"):
+    def search_reactions_by_scaffold(
+        self,
+        df: pd.DataFrame,
+        threshold: float = 0.5,
+        max_return: int = 100,
+        fp: str = "MACCS",
+    ) -> pd.DataFrame:
         dfc = df[df["SCAFFOLD"] == self.scaffold].copy()
         if len(dfc.index) == 0:
             print("No products with the same scaffold found!")
             return None
 
         if fp.lower() == "maccs":
-            fps = [maccs_fp(Chem.MolFromSmiles(r.split(">>")[1]))
-                   for r in tqdm(dfc["REACTION"].tolist(), desc="Making fingerprints...")]
+            fps = [
+                maccs_fp(Chem.MolFromSmiles(r.split(">>")[1]))
+                for r in tqdm(dfc["REACTION"].tolist(), desc="Making fingerprints...")
+            ]
             dfc["SIMILARITY"] = [get_similarity(self.maccs_fp, fp) for fp in fps]
         elif fp.lower() == "morgan":
-            fps = [morgan_fp(Chem.MolFromSmiles(r.split(">>")[1]))
-                   for r in tqdm(dfc["REACTION"].tolist(), desc="Making fingerprints...")]
+            fps = [
+                morgan_fp(Chem.MolFromSmiles(r.split(">>")[1]))
+                for r in tqdm(dfc["REACTION"].tolist(), desc="Making fingerprints...")
+            ]
             dfc["SIMILARITY"] = [get_similarity(self.morgan_fp, fp) for fp in fps]
         else:
-            raise KeyError(f"Fingerprint choice {fp} is not supported. Select MACCS or Morgan.")
+            raise KeyError(
+                f"Fingerprint choice {fp} is not supported. Select MACCS or Morgan."
+            )
 
         df_tag = dfc.sort_values(by="SIMILARITY", ascending=False).copy()
         df_tag["SOLVENT"].fillna("", inplace=True)
@@ -329,7 +435,9 @@ class Molecule:
         df_tag["REAGENT"].fillna("", inplace=True)
         max_similarity = df_tag["SIMILARITY"].max()
         df_tag = df_tag[df_tag["SIMILARITY"] > threshold].copy()
-        print(f"Product found with similarity of {max_similarity:.3f}. This will be our best match.")
+        print(
+            f"Product found with similarity of {max_similarity:.3f}. This will be our best match."
+        )
         df_return = df_tag.iloc[:max_return].copy()
 
         if "rxn_str_patt_fp" in df_return.keys():
@@ -347,19 +455,24 @@ class Molecule:
 
         return df_return
 
-    def get_functional_groups(self, df: pd.DataFrame = None) -> tuple:
+    def get_functional_groups(self, df: pd.DataFrame = None) -> list[str]:
         if df is None:
             from importlib import resources
-            with resources.path(f'{__package__}.json', 'functional_groups.json') as path:
-                df = pd.read_json(path, orient='records', lines=True)
+
+            with resources.path(
+                f"{__package__}.json", "functional_groups.json"
+            ) as path:
+                df = pd.read_json(path, orient="records", lines=True)
 
         mol = self.mol
         atom_indices = np.array([atom.GetIdx() for atom in mol.GetAtoms()])
         fg = []
-        visited_atoms = []
+        visited_atoms: List[List[int]] = []
         for i in df.index:
             if len(np.in1d(visited_atoms, atom_indices)) != 0:
-                if len(visited_atoms[np.in1d(visited_atoms, atom_indices)]) == len(atom_indices):
+                if len(visited_atoms[np.in1d(visited_atoms, atom_indices)]) == len(
+                    atom_indices
+                ):
                     break
             sm = mol.GetSubstructMatches(Chem.MolFromSmarts(df["pattern"][i]))
             if len(sm) == 0:
@@ -370,27 +483,33 @@ class Molecule:
                     if len(matched_atoms[np.in1d(matched_atoms, atom_indices)]) > 0:
                         if len(np.in1d(visited_atoms, matched_atoms)) == 0:
                             fg.append(df["name"][i])
-                            visited_atoms = np.unique(np.append(visited_atoms, matched_atoms))
-                        elif len(visited_atoms[np.in1d(visited_atoms, matched_atoms)]) != len(matched_atoms):
+                            visited_atoms = np.unique(
+                                np.append(visited_atoms, matched_atoms)
+                            )
+                        elif len(
+                            visited_atoms[np.in1d(visited_atoms, matched_atoms)]
+                        ) != len(matched_atoms):
                             fg.append(df["name"][i])
-                            visited_atoms = np.unique(np.append(visited_atoms, matched_atoms))
+                            visited_atoms = np.unique(
+                                np.append(visited_atoms, matched_atoms)
+                            )
                         else:
                             continue
                     else:
                         continue
-        return tuple(fg)
+        return fg
 
-    def get_rings(self):
+    def get_rings(self) -> list[str]:
         mol = self.mol
         try:
             rs = get_ring_systems(mol, include_spiro=True)
         except:
-            return tuple([])
+            return []
 
         found_rings = []
         if len(rs) > 0:
             for k in range(len(rs)):
                 found_rings.append(sanitize_ring(atom_remover(mol, [rs[k]])))
-            return tuple(found_rings)
+            return found_rings
         else:
-            return tuple([])
+            return []

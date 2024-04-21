@@ -1,28 +1,29 @@
+from typing import Any
+
+import numpy as np
+import numpy.typing as npt
 from rdkit import Chem
 from rdkit.Chem import AllChem
 from rdkit.Chem.rdchem import Mol
-import numpy as np
 
 
-def get_morgan_fingerprint(mol: Mol) -> np.ndarray:
-    """
-    Get the ECFP4 fingerprint of a molecule.
+def get_morgan_fingerprint(mol: Mol) -> npt.NDArray[Any]:
+    """Get the ECFP4 fingerprint of a molecule.
     :param mol: RDKit Mol object
     :return: NumPy array
     """
-
-    fp = AllChem.GetMorganFingerprintAsBitVect(mol, useChirality=True, radius=2, nBits=1024)
+    fp = AllChem.GetMorganFingerprintAsBitVect(
+        mol, useChirality=True, radius=2, nBits=1024
+    )
     morgan_fp = np.array(fp)
     return morgan_fp
 
 
-def morgan_reaction_fingerprint(rxn: str) -> np.ndarray:
-    """
-    Obtain the Morgan-based fingerprint of a reaction à la Schneider: https://doi.org/10.1021/ci5006614
+def morgan_reaction_fingerprint(rxn: str) -> npt.NDArray[Any]:
+    """Obtain the Morgan-based fingerprint of a reaction à la Schneider: https://doi.org/10.1021/ci5006614
     :param rxn: Reaction SMILES
     :return: NumPy array
     """
-
     reactants, products = rxn.split(">>")
     reactants = reactants.split(".")
     products = products.split(".")
@@ -38,3 +39,9 @@ def morgan_reaction_fingerprint(rxn: str) -> np.ndarray:
     fp = p_fp - r_fp  # Difference fingerprint
 
     return fp
+
+
+if __name__ == "__main__":
+    rxn_smiles = "c1ccccc1.CC(=O)Cl>>CC(=O)c1ccccc1"
+    difference_fingerprint = morgan_reaction_fingerprint(rxn_smiles)
+    print(difference_fingerprint)
