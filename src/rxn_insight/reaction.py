@@ -1,6 +1,6 @@
 import hashlib
 import warnings
-from typing import Dict, List, Optional
+from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -63,7 +63,7 @@ class Reaction:
         self.mapped_reaction = self.classifier.sanitized_mapped_reaction
         self.reaction_class = ""
         self.template = self.classifier.template
-        self.reaction_info: Dict[str, tuple[str, ...] | str] = dict()
+        self.reaction_info: dict[str, tuple[str, ...] | str] = dict()
         self.tag = ""
         self.name = ""
         self.byproducts: tuple[str, ...] = tuple()
@@ -119,7 +119,7 @@ class Reaction:
             ]
         )
 
-    def get_functional_groups(self) -> tuple[List[str], ...]:
+    def get_functional_groups(self) -> tuple[list[str], ...]:
         if self.fg_db is None:
             from importlib import resources
 
@@ -137,7 +137,7 @@ class Reaction:
             ]
         )
 
-    def get_byproducts(self) -> List[str]:
+    def get_byproducts(self) -> list[str]:
         fg_r, fg_p = self.get_functional_groups()
         byproducts = self.classifier.balance_reaction(fg_r, fg_p)
         self.byproducts = byproducts
@@ -157,7 +157,7 @@ class Reaction:
         self.name = self.classifier.name_reaction(self.smirks_db)
         return self.name
 
-    def get_reaction_info(self) -> Dict[str, list[str] | str]:
+    def get_reaction_info(self) -> dict[str, list[str] | str]:
         if self.fg_db is None:
             from importlib import resources
 
@@ -326,7 +326,7 @@ class Reaction:
         hashtag = hashlib.sha256(tag_bytes).hexdigest()
         return str(hashtag)
 
-    def suggest_conditions(self, df: pd.DataFrame) -> Dict[str, pd.DataFrame]:
+    def suggest_conditions(self, df: pd.DataFrame) -> dict[str, pd.DataFrame]:
         if self.neighbors is None or len(self.neighbors.index) == 0:
             nbs = self.find_neighbors(df, max_return=5000, threshold=0.3, broaden=True)
         else:
@@ -467,7 +467,7 @@ class Molecule:
         mol = self.mol
         atom_indices = np.array([atom.GetIdx() for atom in mol.GetAtoms()])
         fg = []
-        visited_atoms: List[List[int]] = []
+        visited_atoms: list[list[int]] = []
         for i in df.index:
             if len(np.in1d(visited_atoms, atom_indices)) != 0:
                 if len(visited_atoms[np.in1d(visited_atoms, atom_indices)]) == len(

@@ -1,5 +1,5 @@
 import hashlib
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 import numpy as np
 import numpy.typing as npt
@@ -98,7 +98,7 @@ def get_atom_mapping(rxn: str, rxn_mapper: Optional[RXNMapper] = None) -> str:
     return mapped_rxn
 
 
-def sanitize_mapped_reaction(rxn: str) -> tuple[str, str, List[str]]:
+def sanitize_mapped_reaction(rxn: str) -> tuple[str, str, list[str]]:
     """Remove reactants that are unmapped from the reactants.
     :param rxn: Reaction SMILES with atom mapping
     :return: Mapped and unmapped reaction SMILES without reagents.
@@ -571,12 +571,12 @@ def get_scaffold(mol: Mol) -> str | None:
     """
     [a.SetAtomMapNum(0) for a in mol.GetAtoms()]
     scaffold = GetScaffoldForMol(mol)
-    smi: str | None = Chem.MolToSmiles(scaffold)
+    smi: Optional[str] = Chem.MolToSmiles(scaffold)
 
     return smi
 
 
-def tag_reaction(rxn_info: Dict[str, List[str] | str]) -> str:
+def tag_reaction(rxn_info: dict[str, list[str] | str]) -> str:
     tag = f"{rxn_info['CLASS']} "
     fg_r = sorted(list(rxn_info["FG_REACTANTS"]))
     fg_p = sorted(list(rxn_info["FG_PRODUCTS"]))

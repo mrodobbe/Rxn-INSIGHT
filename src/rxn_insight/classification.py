@@ -1,5 +1,5 @@
 import itertools
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 import numpy as np
 import numpy.typing as npt
@@ -31,7 +31,7 @@ class ReactionClassifier:
     def __init__(
         self,
         reaction: str,
-        rxn_mapper: RXNMapper | None = None,
+        rxn_mapper: Optional[RXNMapper] = None,
         keep_mapping: bool = False,
     ):
         if keep_mapping:
@@ -176,7 +176,7 @@ class ReactionClassifier:
         return rxn
 
     def get_functional_group_smarts(
-        self, molecule: Mol, matrix: npt.NDArray[Any], map_dict: Dict[int, int]
+        self, molecule: Mol, matrix: npt.NDArray[Any], map_dict: dict[int, int]
     ) -> tuple[str, ...]:
         maps = self.transformation_mapping
         matrix_indices = [self.atom_mapping_index[atom_map] for atom_map in maps]
@@ -263,14 +263,14 @@ class ReactionClassifier:
         return tuple(functional_groups)
 
     def get_functional_groups(
-        self, mol: Mol, map_dict: Dict[int, int], df: pd.DataFrame
+        self, mol: Mol, map_dict: dict[int, int], df: pd.DataFrame
     ) -> list[str]:
         maps = self.transformation_mapping
         atom_indices = np.array(
             [map_dict[atom_map] for atom_map in maps if atom_map in map_dict]
         )
         fg = []
-        visited_atoms: List[List[int]] = []
+        visited_atoms: list[list[int]] = []
         for i in df.index:
             if len(np.in1d(visited_atoms, atom_indices)) != 0:
                 if len(visited_atoms[np.in1d(visited_atoms, atom_indices)]) == len(
@@ -303,7 +303,7 @@ class ReactionClassifier:
         return fg
 
     def get_ring_type(
-        self, mol: Mol, map_dict: Optional[Dict[int, int]] = None
+        self, mol: Mol, map_dict: Optional[dict[int, int]] = None
     ) -> list[str]:
         try:
             rs = get_ring_systems(mol, include_spiro=True)
@@ -343,7 +343,7 @@ class ReactionClassifier:
         mp = self.be_matrix_products
         lost_heavy = self.mol_reactant.GetNumAtoms() - self.mol_product.GetNumAtoms()
         if lost_heavy == 0:
-            return [""]
+            return []
         negative_values = np.where(d < 0)[0]
         metals = np.array([3, 5, 11, 12, 29, 30, 34, 47, 50])
         metal_indices = np.where(np.in1d(self.reaction_center_atoms, metals))[0]
@@ -444,8 +444,8 @@ class ReactionClassifier:
 
         return small_molecules
 
-    def get_reaction_center_info(self, df: pd.DataFrame) -> Dict[str, List[str] | str]:
-        reaction_center: Dict[str, list[str] | str] = dict()
+    def get_reaction_center_info(self, df: pd.DataFrame) -> dict[str, list[str] | str]:
+        reaction_center: dict[str, list[str] | str] = dict()
         reaction_center["REACTION"] = self.sanitized_reaction
         reaction_center["MAPPED_REACTION"] = self.sanitized_mapped_reaction
         reaction_center["N_REACTANTS"] = self.num_reactants
@@ -474,7 +474,7 @@ class ReactionClassifier:
 
     def get_atom_mapping_indices(
         self,
-    ) -> tuple[Dict[int, int], npt.NDArray[Any], npt.NDArray[Any], int]:
+    ) -> tuple[dict[int, int], npt.NDArray[Any], npt.NDArray[Any], int]:
         """Make a dictionary that gives a unique index to all atoms in reactants and products.
         Necessary since reactions are not balanced.
         :return: Dictionary that links atom map and index. Size of BE-matrix
@@ -1261,8 +1261,8 @@ class ReactionClassifier:
                     )[0]
                     carbon_bonds = maps_1[np.in1d(maps_1, carbons)]
                     # rcid = np.array(self.reaction_center_idx) <--- seems to be unused
-                    carbonyls_r: List[int] = []
-                    carbonyls_p: List[int] = []
+                    carbonyls_r: list[int] = []
+                    carbonyls_p: list[int] = []
                     if len(o_indices) != 0:
                         for carbon in carbons:
                             carbonyls_r += list(
