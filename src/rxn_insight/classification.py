@@ -1,3 +1,5 @@
+"""Reaction classification module"""
+
 import itertools
 from typing import Any, Optional
 
@@ -28,12 +30,20 @@ from rxn_insight.utils import (
 
 
 class ReactionClassifier:
+    """This class handles operations related to chemical reaction classification."""
     def __init__(
         self,
         reaction: str,
         rxn_mapper: Optional[RXNMapper] = None,
         keep_mapping: bool = False,
     ):
+        """Initializes the ReactionClassifier with the specified reaction and options.
+
+        Args:
+            reaction (str): The reaction SMILES string with or without atom mapping.
+            rxn_mapper (Optional[RXNMapper]): An instance of RXNMapper for generating atom mappings.
+            keep_mapping (bool): If True, keeps existing atom mappings; otherwise, generates new mappings.
+        """
         if keep_mapping:
             self.mapped_reaction = reaction
             self.reaction = remove_atom_mapping(
@@ -112,8 +122,10 @@ class ReactionClassifier:
         #                                                                    self.product_map_dict)
 
     def get_template_smiles(self) -> str | None:
-        """Make a reaction SMILES from the Reaction SMARTS template
-        :return: Reaction SMILES of the reaction template
+        """Generates a reaction SMILES from the reaction SMARTS template.
+
+        Returns:
+            str | None: The reaction SMILES of the reaction template, or None if no template is generated.
         """
         extended_template = self.template
         if extended_template is None:
@@ -178,6 +190,16 @@ class ReactionClassifier:
     def get_functional_group_smarts(
         self, molecule: Mol, matrix: npt.NDArray[Any], map_dict: dict[int, int]
     ) -> tuple[str, ...]:
+        """Identifies and returns SMARTS strings for functional groups in the molecule based on the specified matrix and mapping.
+
+        Args:
+            molecule (Mol): The RDKit molecule object.
+            matrix (npt.NDArray[Any]): A matrix representing chemical properties or structure.
+            map_dict (dict[int, int]): Mapping of atom indices to their corresponding mapping numbers in the reaction.
+
+        Returns:
+            tuple[str, ...]: A tuple containing SMARTS strings of the identified functional groups.
+        """
         maps = self.transformation_mapping
         matrix_indices = [self.atom_mapping_index[atom_map] for atom_map in maps]
         functional_groups = []
@@ -265,6 +287,16 @@ class ReactionClassifier:
     def get_functional_groups(
         self, mol: Mol, map_dict: dict[int, int], df: pd.DataFrame
     ) -> list[str]:
+        """Extracts functional groups from the molecule using the specified mapping and reference DataFrame.
+
+        Args:
+            mol (Mol): The molecule from which to extract functional groups.
+            map_dict (dict[int, int]): A dictionary mapping atom indices to mapping numbers.
+            df (pd.DataFrame): DataFrame containing functional group definitions.
+
+        Returns:
+            list[str]: A list of names of identified functional groups.
+        """
         maps = self.transformation_mapping
         atom_indices = np.array(
             [map_dict[atom_map] for atom_map in maps if atom_map in map_dict]
@@ -305,6 +337,15 @@ class ReactionClassifier:
     def get_ring_type(
         self, mol: Mol, map_dict: Optional[dict[int, int]] = None
     ) -> list[str]:
+        """Determines the types of ring structures present in the molecule.
+
+        Args:
+            mol (Mol): The molecule to analyze.
+            map_dict (Optional[dict[int, int]]): Mapping of atom indices to their mapping numbers, if available.
+
+        Returns:
+            list[str]: A list of ring types identified in the molecule.
+        """
         try:
             rs = get_ring_systems(mol, include_spiro=True)
         except:
@@ -338,6 +379,15 @@ class ReactionClassifier:
             return []
 
     def balance_reaction(self, fgr: list[str], fgp: list[str]) -> list[str]:
+        """Balances the reaction based on functional groups present in reactants and products.
+
+        Args:
+            fgr (list[str]): Functional groups in reactants.
+            fgp (list[str]): Functional groups in products.
+
+        Returns:
+            list[str]: A list of potential by-products or missing elements in the balanced reaction.
+        """
         d = self.transformation_matrix.diagonal()
         mr = self.be_matrix_reactants
         mp = self.be_matrix_products
@@ -445,6 +495,14 @@ class ReactionClassifier:
         return small_molecules
 
     def get_reaction_center_info(self, df: pd.DataFrame) -> dict[str, list[str] | str]:
+        """Compiles detailed information about the reaction center from the reaction.
+
+        Args:
+            df (pd.DataFrame): DataFrame containing additional data required for analysis.
+
+        Returns:
+            dict[str, list[str] | str]: A dictionary containing detailed information about the reaction center.
+        """
         reaction_center: dict[str, list[str] | str] = dict()
         reaction_center["REACTION"] = self.sanitized_reaction
         reaction_center["MAPPED_REACTION"] = self.sanitized_mapped_reaction
@@ -475,6 +533,12 @@ class ReactionClassifier:
     def get_atom_mapping_indices(
         self,
     ) -> tuple[dict[int, int], npt.NDArray[Any], npt.NDArray[Any], int]:
+        """Generates a mapping from atom indices to their positions in the transformation matrix.
+
+        Returns:
+            tuple: Contains a dictionary for atom mapping to indices, arrays for atom numbers and mapping, and the matrix size.
+        """
+
         """Make a dictionary that gives a unique index to all atoms in reactants and products.
         Necessary since reactions are not balanced.
         :return: Dictionary that links atom map and index. Size of BE-matrix
@@ -535,9 +599,13 @@ class ReactionClassifier:
         return map_idx_dict, atoms_diagonal, map_diagonal, matrix_size
 
     def get_be_matrix(self, molecule: Mol) -> npt.NDArray[Any]:
-        """Calculate the bond-electron matrix of a molecule
-        :param molecule: RDKit Mol object
-        :return: NumPy two-dimensional array
+        """Calculates the bond-electron matrix for the given molecule.
+
+        Args:
+            molecule (Mol): The molecule for which to calculate the bond-electron matrix.
+
+        Returns:
+            npt.NDArray[Any]: A matrix representing the bond-electron relationships in the molecule.
         """
         matrix = np.zeros((self.matrix_size, self.matrix_size))
         for atom in molecule.GetAtoms():
@@ -561,8 +629,10 @@ class ReactionClassifier:
         return matrix
 
     def sanitize_r_matrix(self) -> tuple[npt.NDArray[Any], ...]:
-        """Clean up R-matrix by removing all-zero columns and rows.
-        :return: NumPy two-dimensional array and NumPy one-dimensional array
+        """Sanitizes the R-matrix by removing all-zero rows and columns.
+
+        Returns:
+            tuple[npt.NDArray[Any], ...]: A tuple containing the cleaned R-matrix and arrays for atom numbers and mappings.
         """
         clean_r_matrix = np.copy(self.r_matrix)
         atoms_to_remove = ~np.all(clean_r_matrix == 0.0, axis=1)
@@ -575,8 +645,10 @@ class ReactionClassifier:
         return clean_r_matrix, sanitized_atoms_diagonal, sanitized_mapping_diagonal
 
     def remove_metals_and_halogens(self) -> tuple[npt.NDArray[Any], ...]:
-        """Metals and halogens are often not useful for classification, therefore the R-matrix is further stripped
-        :return: NumPy two-dimensional array
+        """Removes metal and halogen atoms from the R-matrix, as they are generally not useful for reaction classification.
+
+        Returns:
+            tuple[npt.NDArray[Any], ...]: A tuple containing the sanitized transformation matrix, reaction center atoms, and mappings.
         """
         to_delete = []
         ignore_atoms = [9, 17, 35, 53]
@@ -615,8 +687,10 @@ class ReactionClassifier:
         return clean_transformation_matrix, reaction_center, transformation_mapping
 
     def check_nos(self) -> bool:
-        """Checks whether N, O, or S is in the reactive center
-        :return: bool indicating presence of N,O,S
+        """Checks if nitrogen, oxygen, or sulfur atoms are involved in the reaction center.
+
+        Returns:
+            bool: True if N, O, or S atoms are involved in the reaction center; otherwise, False.
         """
         nos = False
         nos_atoms = [7, 8, 16]
@@ -632,8 +706,10 @@ class ReactionClassifier:
         return nos
 
     def ring_changing(self) -> int:
-        """Returns the difference between rings in products and reactants.
-        :return: int: Negative value for ring cleavage, positive value for formed rings
+        """Calculates the net change in the number of ring structures between reactants and products.
+
+        Returns:
+            int: The net change in the number of rings; positive for ring formation, negative for ring breaking.
         """
         reactants = Chem.AddHs(self.mol_reactant)
         products = Chem.AddHs(self.mol_product)
@@ -646,6 +722,11 @@ class ReactionClassifier:
         return ri_change
 
     def is_fgi(self) -> bool:
+        """Determines if the reaction involves a functional group interconversion (FGI).
+
+        Returns:
+            bool: True if the reaction is classified as a functional group interconversion, otherwise False.
+        """
         m = self.transformation_matrix
         if len(self.sanitized_transformation_matrix) == 1 and m[0][0] == 0:
             return True
@@ -817,6 +898,11 @@ class ReactionClassifier:
         return False
 
     def is_aromatic_heterocycle(self) -> bool:
+        """Assesses whether the reaction involves the formation or modification of an aromatic heterocycle.
+
+        Returns:
+            bool: True if the reaction pertains to aromatic heterocycle changes, otherwise False.
+        """
         aromatic_changes = np.array(
             list(np.where(self.sanitized_transformation_matrix == 1.5)[0])
             + list(np.where(self.sanitized_transformation_matrix == 0.5)[0])
@@ -861,6 +947,11 @@ class ReactionClassifier:
         return False
 
     def is_reduction(self) -> bool:
+        """Determines if the reaction is a reduction process based on the change in oxidation states and functional group transformation.
+
+        Returns:
+            bool: True if the reaction can be classified as a reduction, otherwise False.
+        """
         if self.num_reactants == 1:
             m = self.transformation_matrix
             only_nonpositive = (
@@ -956,6 +1047,11 @@ class ReactionClassifier:
             return False
 
     def is_oxidation(self) -> bool:
+        """Checks if the reaction is an oxidation by examining changes in oxidation states and the involvement of key functional groups.
+
+        Returns:
+            bool: True if the reaction involves oxidation, otherwise False.
+        """
         m = self.transformation_matrix
         sm = self.sanitized_transformation_matrix
         if self.num_reactants == 1:
@@ -1070,6 +1166,11 @@ class ReactionClassifier:
             return False
 
     def is_acylation(self) -> bool:
+        """Evaluates whether the reaction involves acylation, specifically focusing on the transformation around carbonyl groups.
+
+        Returns:
+            bool: True if the reaction involves acylation, otherwise False.
+        """
         if self.num_reactants == 1:
             return False
         else:
@@ -1221,6 +1322,11 @@ class ReactionClassifier:
             return acyl
 
     def is_heteroatom_alkylation(self) -> bool:
+        """Determines if the reaction involves alkylation of heteroatoms (N, O, S).
+
+        Returns:
+            bool: True if the reaction is a heteroatom alkylation, otherwise False.
+        """
         if not self.nos_reaction_center:
             return False
         elif self.num_reactants == 1 and self.ring_change <= 0:
@@ -1287,6 +1393,11 @@ class ReactionClassifier:
             return False
 
     def is_cc_coupling(self) -> bool:
+        """Checks if the reaction is a carbon-carbon coupling process.
+
+        Returns:
+            bool: True if the reaction involves carbon-carbon coupling, otherwise False.
+        """
         if self.num_reactants == 1 and self.ring_change <= 0:
             return False
         else:
@@ -1321,6 +1432,11 @@ class ReactionClassifier:
             return False
 
     def is_fga(self) -> bool:
+        """Determines if the reaction involves the addition of functional groups to the existing molecular framework.
+
+        Returns:
+            bool: True if the reaction is classified as functional group addition, otherwise False.
+        """
         m = self.transformation_matrix
         sm = self.sanitized_transformation_matrix
         a = np.array(
@@ -1411,6 +1527,11 @@ class ReactionClassifier:
         return False
 
     def is_deprotection(self) -> bool:
+        """Evaluates whether the reaction is a deprotection, which involves the removal of protective groups from functional sites.
+
+        Returns:
+            bool: True if the reaction is a deprotection process, otherwise False.
+        """
         if self.num_reactants == 1:
             only_nonpositive = (
                 len(np.where(self.sanitized_transformation_matrix > 0)[0]) == 0
@@ -1477,6 +1598,11 @@ class ReactionClassifier:
             return False
 
     def is_protection(self) -> bool:
+        """Determines if the reaction is a protection, which involves adding protective groups to functional sites.
+
+        Returns:
+            bool: True if the reaction is classified as a protection process, otherwise False.
+        """
         if self.num_reactants == 1:
             return False
         else:
@@ -1537,6 +1663,11 @@ class ReactionClassifier:
             return False
 
     def classify_reaction(self) -> str:
+        """Classifies the reaction based on its chemical characteristics and transformation patterns.
+
+        Returns:
+            str: The classification of the reaction, such as 'Reduction', 'Oxidation', etc.
+        """
         if self.is_aromatic_heterocycle():
             return "Aromatic Heterocycle Formation"
         elif self.is_acylation():
@@ -1561,9 +1692,13 @@ class ReactionClassifier:
             return "Miscellaneous"
 
     def name_reaction(self, smirks_db: pd.DataFrame) -> str:
-        """Retrieve the reaction name from unmapped Reaction SMILES.
-        :param smirks_db: Pandas DataFrame with SMIRKS transformations
-        :return: Reaction name
+        """Determines the name of the reaction from a database based on SMIRKS transformations.
+
+        Args:
+            smirks_db (pd.DataFrame): DataFrame containing SMIRKS patterns and corresponding reaction names.
+
+        Returns:
+            str: The name of the reaction, or 'OtherReaction' if no specific name can be determined.
         """
         reactants, products = self.sanitized_reaction.split(">>")
         reactants = reactants.split(".")
