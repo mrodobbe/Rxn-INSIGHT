@@ -20,9 +20,21 @@ cd Rxn-INSIGHT
 pip install .
 ```
 
-Or, for developing with the optional dependencies:
+Or, for developing with the optional dependencies, which are required to run the tests
+and build the docs:
 ``` 
 pip install -e ".[test,doc]"
+```
+
+All of the test environments can be run using the command `tox` from the top directory.
+Alternatively, individual test environments can be run using the `-e` flag as 
+in `tox -e env-name`. To run the tests, tests with coverage report, style checks, and
+docs build, respectively:
+```
+tox -e py3
+tox -e py3-coverage
+tox -e style
+tox -e docs
 ```
 
 ## 2. Usage

@@ -44,6 +44,12 @@ class ReactionClassifier:
             rxn_mapper (Optional[RXNMapper]): An instance of RXNMapper for generating atom mappings.
             keep_mapping (bool): If True, keeps existing atom mappings; otherwise, generates new mappings.
         """
+        # Check reaction SMILES is valid
+        try:
+            AllChem.ReactionFromSmarts(reaction)
+        except ValueError as e:
+            raise ValueError(f"Invalid reaction SMILES string. Error msg: {e}")
+
         if keep_mapping:
             self.mapped_reaction = reaction
             self.reaction = remove_atom_mapping(
