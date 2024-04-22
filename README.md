@@ -1,6 +1,6 @@
 # Rxn-INSIGHT: Fast Chemical Reaction Analysis Using Bond-Electron Matrices
 
-![Coverage Status](https://raw.githubusercontent.com/pschwllr/ch200/main/coverage-badge.svg)
+![Coverage Status](coverage-badge.svg)
 
 Rxn-INSIGHT is an open-source algorithm, written in python, to classify and name chemical reactions, and suggest reaction conditions based on similarity and popularity.
 
