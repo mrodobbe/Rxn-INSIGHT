@@ -1,5 +1,7 @@
 # Rxn-INSIGHT: Fast Chemical Reaction Analysis Using Bond-Electron Matrices
 
+![Coverage Status](coverage-badge.svg)
+
 Rxn-INSIGHT is an open-source algorithm, written in python, to classify and name chemical reactions, and suggest reaction conditions based on similarity and popularity.
 * https://doi.org/10.1186/s13321-024-00834-z: Peer-reviewed publication on Rxn-INSIGHT
 ## 1. Installation
@@ -8,20 +10,37 @@ Rxn-INSIGHT relies on NumPy, Pandas, RDKit, RDChiral, and RXNMapper.
 A virtual environment can be installed with Anaconda as follows:
 
 ```console
-conda env create -f environment.yml
+conda create -n rxn-insight python=3.10
 conda activate rxn-insight
 ```
 
-To add the rxn-insight environment to Jupyter Notebook:
+```
+git clone https://github.com/schwallergroup/Rxn-INSIGHT.git
+cd Rxn-INSIGHT
+pip install .
+```
 
-```console
-python -m ipykernel install --user --name=rxn-insight
+Or, for developing with the optional dependencies, which are required to run the tests
+and build the docs:
+``` 
+pip install -e ".[test,doc]"
+```
+
+All of the test environments can be run using the command `tox` from the top directory.
+Alternatively, individual test environments can be run using the `-e` flag as 
+in `tox -e env-name`. To run the tests, tests with coverage report, style checks, and
+docs build, respectively:
+```
+tox -e py3
+tox -e py3-coverage
+tox -e style
+tox -e docs
 ```
 
 ## 2. Usage
 
 ### Basic Usage
-```console
+```python
 from rxn_insight.reaction import Reaction
 r = "c1ccccc1I.C=CC(=O)OC>>COC(=O)/C=C/c1ccccc1"  # Define a Reaction SMILES identifier
 rxn = Reaction(r)
@@ -29,7 +48,7 @@ ri = rxn.get_reaction_info()
 ```
 
 The reaction info contains most of the information:
-```console
+```python
 {'REACTION': 'C=CC(=O)OC.Ic1ccccc1>>COC(=O)/C=C/c1ccccc1', 
  'MAPPED_REACTION': '[CH3:1][O:2][C:3](=[O:4])[CH:5]=[CH2:6].I[c:7]1[cH:8][cH:9][cH:10][cH:11][cH:12]1>>[CH3:1][O:2][C:3](=[O:4])/[CH:5]=[CH:6]/[c:7]1[cH:8][cH:9][cH:10][cH:11][cH:12]1', 
  'N_REACTANTS': 2, 
@@ -52,13 +71,13 @@ The reaction info contains most of the information:
 
 ### Similarity Search
 A similarity search can be performed when a database with similar reactions is provided as a pandas DataFrame (df in this case). Another Pandas DataFrame is returned.
-```console
+```python
 df_nbs = rxn.find_neighbors(df, fp="MACCS", concatenate=True, threshold=0.5, broaden=True, full_search=False)
 ```
 
 ### Condition Suggestion
 Reaction conditions can be suggested when a Pandas DataFrame is provided.
-```console
+```python
 rxn.suggest_conditions(df)
 suggested_solvents = rxn.suggested_solvent
 suggested_catalysts = rxn.suggested_catalyst
