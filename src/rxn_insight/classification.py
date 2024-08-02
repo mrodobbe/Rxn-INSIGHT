@@ -1,5 +1,5 @@
 import itertools
-from rxn_insight.utils import *
+from src.rxn_insight.utils import *
 from rdchiral.template_extractor import get_strict_smarts_for_atom
 import numpy as np
 
