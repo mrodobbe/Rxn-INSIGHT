@@ -1,14 +1,14 @@
 """Reaction classification module"""
 
 import itertools
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
 from rdchiral.template_extractor import get_strict_smarts_for_atom
 from rdkit import Chem
-from rdkit.Chem import AllChem
+from rdkit.Chem import AllChem  # type: ignore
 from rdkit.Chem.rdchem import Mol
 
 try:
@@ -142,8 +142,8 @@ class ReactionClassifier:
         products = reaction.split(">>")[1].split(".")
 
         reactants_template, products_template = extended_template.split(">>")
-        reactants_template = reactants_template.split(".")
-        products_template = products_template.split(".")
+        reactants_template_list = reactants_template.split(".")
+        products_template_list = products_template.split(".")
 
         subreactants = []
         subproducts = []
@@ -151,8 +151,8 @@ class ReactionClassifier:
         for j in range(len(reactants)):
             reactant_molecule = Chem.MolFromSmiles(reactants[j])
             atoms_reactant = []
-            for g in range(len(reactants_template)):
-                reactant_template = Chem.MolFromSmarts(reactants_template[g])
+            for g in range(len(reactants_template_list)):
+                reactant_template = Chem.MolFromSmarts(reactants_template_list[g])
                 if len(reactant_molecule.GetSubstructMatch(reactant_template)) > 0:
                     atoms_reactant.append(
                         reactant_molecule.GetSubstructMatch(reactant_template)
@@ -170,8 +170,8 @@ class ReactionClassifier:
             #         print(products[k])
             product_molecule = Chem.MolFromSmiles(products[k])
             atoms_products = []
-            for g in range(len(products_template)):
-                product_template = Chem.MolFromSmarts(products_template[g])
+            for g in range(len(products_template_list)):
+                product_template = Chem.MolFromSmarts(products_template_list[g])
                 if len(product_molecule.GetSubstructMatch(product_template)) > 0:
                     atoms_products.append(
                         product_molecule.GetSubstructMatch(product_template)
@@ -500,16 +500,17 @@ class ReactionClassifier:
 
         return small_molecules
 
-    def get_reaction_center_info(self, df: pd.DataFrame) -> dict[str, list[str] | str]:
+    def get_reaction_center_info(self, df: pd.DataFrame) -> dict[str, Union[list[str], str, int]]:
         """Compiles detailed information about the reaction center from the reaction.
 
         Args:
             df (pd.DataFrame): DataFrame containing additional data required for analysis.
 
         Returns:
-            dict[str, list[str] | str]: A dictionary containing detailed information about the reaction center.
+            dict[str, Union[list[str], str, int]]:
+            A dictionary containing detailed information about the reaction center.
         """
-        reaction_center: dict[str, list[str] | str] = dict()
+        reaction_center: dict[str, Union[list[str], str, int]] = dict()
         reaction_center["REACTION"] = self.sanitized_reaction
         reaction_center["MAPPED_REACTION"] = self.sanitized_mapped_reaction
         reaction_center["N_REACTANTS"] = self.num_reactants
@@ -1706,9 +1707,9 @@ class ReactionClassifier:
         Returns:
             str: The name of the reaction, or 'OtherReaction' if no specific name can be determined.
         """
-        reactants, products = self.sanitized_reaction.split(">>")
-        reactants = reactants.split(".")
-        products = products.split(".")
+        reactants_smiles, products_smiles = self.sanitized_reaction.split(">>")
+        reactants = reactants_smiles.split(".")
+        products = products_smiles.split(".")
 
         if (
             len(reactants) > 4 or len(products) > 4

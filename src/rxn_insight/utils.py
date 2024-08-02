@@ -1,5 +1,5 @@
 import hashlib
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import numpy as np
 import numpy.typing as npt
@@ -576,7 +576,7 @@ def get_scaffold(mol: Mol) -> str | None:
     return smi
 
 
-def tag_reaction(rxn_info: dict[str, list[str] | str]) -> str:
+def tag_reaction(rxn_info: dict[str, Union[list[str], str, int]]) -> str:
     tag = f"{rxn_info['CLASS']} "
     fg_r = sorted(list(rxn_info["FG_REACTANTS"]))
     fg_p = sorted(list(rxn_info["FG_PRODUCTS"]))

@@ -25,10 +25,10 @@ def morgan_reaction_fingerprint(rxn: str) -> npt.NDArray[Any]:
     :return: NumPy array
     """
     reactants, products = rxn.split(">>")
-    reactants = reactants.split(".")
-    products = products.split(".")
-    reactant_molecules = [Chem.AddHs(Chem.MolFromSmiles(r)) for r in reactants]
-    product_molecules = [Chem.AddHs(Chem.MolFromSmiles(p)) for p in products]
+    reactants_list = reactants.split(".")
+    products_list = products.split(".")
+    reactant_molecules = [Chem.AddHs(Chem.MolFromSmiles(r)) for r in reactants_list]
+    product_molecules = [Chem.AddHs(Chem.MolFromSmiles(p)) for p in products_list]
 
     reactant_fp = tuple([get_morgan_fingerprint(mol) for mol in reactant_molecules])
     product_fp = tuple([get_morgan_fingerprint(mol) for mol in product_molecules])

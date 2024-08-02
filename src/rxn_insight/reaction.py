@@ -166,9 +166,9 @@ class Reaction:
     def get_byproducts(self) -> list[str]:
         """Calculates and returns byproducts of the reaction based on functional group analysis."""
         fg_r, fg_p = self.get_functional_groups()
-        byproducts = self.classifier.balance_reaction(fg_r, fg_p)
-        self.byproducts = byproducts
-        return byproducts
+        calculated_byproducts = self.classifier.balance_reaction(fg_r, fg_p)
+        self.byproducts = calculated_byproducts
+        return calculated_byproducts
 
     def get_scaffold(self) -> Optional[str]:
         """Extracts and returns the molecular scaffold of the product."""
