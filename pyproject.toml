@@ -16,6 +16,8 @@ dependencies = [
     "pyarrow>=15.0.2",
     "numpy",
     "tqdm",
+    "openpyxl",
+    "ipykernel",
 ]
 authors = [
     {name = "Maarten R. Dobbelaere", email = "mrodobbe.dobbelaere@ugent.be"}
