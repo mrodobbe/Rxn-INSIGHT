@@ -14,8 +14,13 @@ conda create -n rxn-insight python=3.10
 conda activate rxn-insight
 ```
 
+### Option 1: Installing via PyPI:
 ```
-git clone https://github.com/schwallergroup/Rxn-INSIGHT.git
+pip install Rxn-INSIGHT
+```
+### Option 2: Installing directly from source:
+```
+git clone https://github.com/mrodobbe/Rxn-INSIGHT.git
 cd Rxn-INSIGHT
 pip install .
 ```
