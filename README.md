@@ -97,6 +97,7 @@ The `gzip` file should be downloaded and placed in the folder `data/`.
 
 ## 4. Reference
 When using Rxn-INSIGHT for your own work, please refer to the original publication: <br>
+
 `M. R. Dobbelaere, I. Lengyel, C. V. Stevens, and K. M. Van Geem, 
 ‘Rxn-INSIGHT: fast chemical reaction analysis using bond-electron matrices’, J. Cheminform., vol. 16, no. 1, Mar. 2024.`
 
