@@ -16,7 +16,7 @@ conda activate rxn-insight
 
 ### Option 1: Installing via PyPI:
 ```
-pip install Rxn-INSIGHT
+pip install rxn-insight
 ```
 ### Option 2: Installing directly from source:
 ```
