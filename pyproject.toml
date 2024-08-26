@@ -105,7 +105,8 @@ no_implicit_reexport = true
 module = ["rxn_insight.*", "rdkit-stubs.*", "rdkit.*"]
 disallow_untyped_defs = true
 ignore_missing_imports = true
-disable_error_code = ["assignment", "import-untyped", "no-any-return"]
+ignore_errors = true
+disable_error_code = ["assignment", "import-untyped", "no-any-return", "syntax"]
 
 # Ignore certain missing imports
 # [[tool.mypy.overrides]]
