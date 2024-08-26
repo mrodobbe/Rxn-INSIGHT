@@ -80,6 +80,9 @@ select = [
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
+[tool.poetry.dependencies]
+rdkit-stubs = {git = "https://github.com/mrodobbe/rdkit-stubs.git", branch = "main"}
+
 [tool.mypy]
 python_version = "3.10"
 warn_redundant_casts = true

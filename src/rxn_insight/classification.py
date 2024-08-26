@@ -8,7 +8,7 @@ import numpy.typing as npt
 import pandas as pd
 from rdchiral.template_extractor import get_strict_smarts_for_atom
 from rdkit import Chem
-from rdkit.Chem import AllChem  # type: ignore
+from rdkit.Chem import AllChem
 from rdkit.Chem.rdchem import Mol
 
 try:
