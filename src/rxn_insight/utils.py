@@ -1,5 +1,5 @@
 import hashlib
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 import numpy as np
 import numpy.typing as npt
@@ -318,7 +318,7 @@ def extract_from_reaction(
 
 
 def get_reaction_template(
-    reaction: str, radius_reactants: int = 2, radius_products: int = 1
+    reaction: str, radius_reactants: int = 2, radius_products: int = 2
 ) -> str | None:
     """Get the reaction template from a mapped reaction.
     :param reaction: Mapped Reaction SMILES
@@ -576,7 +576,7 @@ def get_scaffold(mol: Mol) -> str | None:
     return smi
 
 
-def tag_reaction(rxn_info: dict[str, Union[list[str], str, int]]) -> str:
+def tag_reaction(rxn_info: dict[str, list[str] | str]) -> str:
     tag = f"{rxn_info['CLASS']} "
     fg_r = sorted(list(rxn_info["FG_REACTANTS"]))
     fg_p = sorted(list(rxn_info["FG_PRODUCTS"]))
@@ -630,6 +630,14 @@ def get_fp(rxn: str, fp: str = "MACCS", concatenate: bool = True) -> npt.NDArray
         rxn_fp = np.sum((reactant_fp, product_fp), axis=0)
 
     return rxn_fp
+
+
+def make_rdkit_fp(rxn: str, fp: str = "MACCS", concatenate: bool = True) -> str:
+    nfp = get_fp(rxn, fp, concatenate)
+    if len(np.where(nfp > 9)[0]) > 0:
+        raise ValueError
+    bfp = "".join(nfp.astype(str))
+    return bfp
 
 
 def get_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
