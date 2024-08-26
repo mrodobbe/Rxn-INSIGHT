@@ -89,6 +89,28 @@ suggested_catalysts = rxn.suggested_catalyst
 suggested_reagents = rxn.suggested_reagent
 ```
 
+### Creating a Rxn-INSIGHT-Compatible Database
+If you want to use similarity search or condition suggestion with your own data, then you need to create a database 
+that is compatible with Rxn-INSIGHT. This action is possible with the Database module from either a csv file 
+or a Pandas DataFrame. Below an example is shown:
+
+```python
+from rxn_insight.database import Database
+from rxn_insight.reaction import Reaction
+
+db = Database()
+db.create_database_from_csv(fname="test.csv", 
+                            reaction_column="RXN", 
+                            solvent_column="SOLVENTS")
+r = Reaction("CCO>>CC=O")
+sug_conds = r.suggest_conditions(db.df)
+```
+
+Two arguments are required: `fname` (location of your csv file) and 
+`reaction_column` (the name of the column containing the reactions).
+The optional arguments are `solvent_column`, `reagent_column`, `catalyst_column`, `yield_column`, and `ref_column`. 
+Default (or when these columns are not available), the column names will be set to respectively SOLVENT, REAGENT, CATALYST, YIELD, REF.
+
 ## 3. Datasets
 The complete USPTO dataset that is analyzed by Rxn-INSIGHT, 
 as described in the manuscript, can be found on 
