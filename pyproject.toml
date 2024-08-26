@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "rxn_insight"
+name = "rxn-insight"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {file = "LICENSE"}
@@ -14,7 +14,7 @@ dependencies = [
     "rdchiral>=1.1.0",
     "pandas",
     "pyarrow>=15.0.2",
-    "numpy",
+    "numpy<=1.26.4",
     "tqdm",
     "openpyxl",
     "ipykernel",
