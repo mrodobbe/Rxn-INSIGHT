@@ -27,7 +27,7 @@ class Database:
             yield_column: str = "YIELD",
             ref_column: str = "REF"
     ) -> pd.DataFrame:
-        all_cols = [solvent_column, reagent_column, catalyst_column, yield_column, ref_column]
+        all_cols = ["SOLVENT", "REAGENT", "CATALYST", "YIELD", "REF"]
         df_protocol = df.rename(columns={reaction_column: "REACTION",
                                              solvent_column: "SOLVENT",
                                              reagent_column: "REAGENT",
@@ -36,7 +36,8 @@ class Database:
                                              ref_column: "REF"})
         for col in all_cols:
             if col not in df_protocol.keys():
-                df_protocol[col] = ""
+                df_protocol[col] = "not-reported"
+
         df, skipped_reactions = analyze_reactions(df_protocol)
         self.df = df
         self.skipped_reactions = skipped_reactions
@@ -56,7 +57,7 @@ class Database:
             ref_column: str = "REF"
     ) -> pd.DataFrame:
         df_csv = pd.read_csv(fname, index_col=None)
-        all_cols = [solvent_column, reagent_column, catalyst_column, yield_column, ref_column]
+        all_cols = ["SOLVENT", "REAGENT", "CATALYST", "YIELD", "REF"]
         df_protocol = df_csv.rename(columns={reaction_column: "REACTION",
                                              solvent_column: "SOLVENT",
                                              reagent_column: "REAGENT",
@@ -65,7 +66,8 @@ class Database:
                                              ref_column: "REF"})
         for col in all_cols:
             if col not in df_protocol.keys():
-                df_protocol[col] = ""
+                df_protocol[col] = "not-reported"
+
         df, skipped_reactions = analyze_reactions(df_protocol)
         self.df = df
         self.skipped_reactions = skipped_reactions
