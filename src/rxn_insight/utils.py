@@ -21,7 +21,10 @@ from rdkit.Chem.Draw import rdMolDraw2D
 from rdkit.Chem.rdchem import Atom, BondType, Mol
 from rdkit.Chem.Scaffolds.MurckoScaffold import GetScaffoldForMol
 from rxnmapper import RXNMapper
-from scipy.spatial.distance import jaccard
+from scipy.spatial.distance import braycurtis, canberra, chebyshev, \
+    cityblock, correlation, cosine, euclidean, minkowski, \
+    dice, hamming, jaccard, kulczynski1, rogerstanimoto, \
+    russellrao, sokalmichener, sokalsneath, yule
 
 pd.options.mode.chained_assignment = None
 
@@ -640,8 +643,133 @@ def make_rdkit_fp(rxn: str, fp: str = "MACCS", concatenate: bool = True) -> str:
     return bfp
 
 
-def get_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
+def get_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any], metric: str = "jaccard") -> float:
+    """Calculate the similarity between two fingerprints. Available metrics are `jaccard`, `dice`,
+    `kulczynski1`, `rogerstanimoto`, `russellrao`, `sokalmichener`, `sokalsneath`, `yule`,
+    `braycurtis`, `canberra`, `chebyshev`, `manhattan`, `correlation`, `cosine`, `euclidean`, `minkowski`.
+
+    :param v1: Reference fingerprint in np.ndarray format
+    :param v2: Fingerprint to compare in np.ndarray format
+    :param metric: Metric to calculate the similarity with.
+    :return: similarity value as float
+    """
+    metric = metric.lower()
+
+    if metric == "jaccard":
+        similarity = calculate_jaccard_similarity(v1, v2)
+    elif metric == "dice":
+        similarity = calculate_dice_similarity(v1, v2)
+    elif metric == "kulczynski1":
+        similarity = calculate_kulczynksi1_similarity(v1, v2)
+    elif metric == "rogerstanimoto":
+        similarity = calculate_rogerstanimoto_similarity(v1, v2)
+    elif metric == "russellrao":
+        similarity = calculate_russellrao_similarity(v1, v2)
+    elif metric == "sokalmichener":
+        similarity = calculate_sokalmichener_similarity(v1, v2)
+    elif metric == "sokalsneath":
+        similarity = calculate_sokalsneath_similarity(v1, v2)
+    elif metric == "yule":
+        similarity = calculate_yule_similarity(v1, v2)
+    elif metric == "braycurtis":
+        similarity = calculate_braycurtis_similarity(v1, v2)
+    elif metric == "canberra":
+        similarity = calculate_canberra_similarity(v1, v2)
+    elif metric == "chebyshev":
+        similarity = calculate_chebyshev_similarity(v1, v2)
+    elif metric == "manhattan":
+        similarity = calculate_manhattan_similarity(v1, v2)
+    elif metric == "correlation":
+        similarity = calculate_correlation_similarity(v1, v2)
+    elif metric == "cosine":
+        similarity = calculate_cosine_similarity(v1, v2)
+    elif metric == "euclidean":
+        similarity = calculate_euclidean_similarity(v1, v2)
+    elif metric == "minkowski":
+        similarity = calculate_minkowski_similarity(v1, v2)
+    else:
+        raise ValueError(f"Unknown metric '{metric}'. Please choose a valid metric.")
+
+    return similarity
+
+
+def calculate_jaccard_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
     similarity: float = 1 - jaccard(v1, v2)
+    return similarity
+
+
+def calculate_dice_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
+    similarity: float = 1 - dice(v1, v2)
+    return similarity
+
+
+def calculate_kulczynksi1_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
+    similarity: float = 1 - kulczynski1(v1, v2)
+    return similarity
+
+
+def calculate_rogerstanimoto_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
+    similarity: float = 1 - rogerstanimoto(v1, v2)
+    return similarity
+
+
+def calculate_russellrao_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
+    similarity: float = 1 - russellrao(v1, v2)
+    return similarity
+
+
+def calculate_sokalmichener_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
+    similarity: float = 1 - sokalmichener(v1, v2)
+    return similarity
+
+
+def calculate_sokalsneath_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
+    similarity: float = 1 - sokalsneath(v1, v2)
+    return similarity
+
+
+def calculate_yule_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
+    similarity: float = 1 - kulczynski1(v1, v2)
+    return similarity
+
+
+def calculate_braycurtis_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
+    similarity: float = 1 - braycurtis(v1, v2)
+    return similarity
+
+
+def calculate_canberra_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
+    similarity: float = 1 - canberra(v1, v2)
+    return similarity
+
+
+def calculate_chebyshev_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
+    similarity: float = 1 - chebyshev(v1, v2)
+    return similarity
+
+
+def calculate_manhattan_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
+    similarity: float = 1 - cityblock(v1, v2)
+    return similarity
+
+
+def calculate_correlation_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
+    similarity: float = 1 - correlation(v1, v2)
+    return similarity
+
+
+def calculate_cosine_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
+    similarity: float = 1 - cosine(v1, v2)
+    return similarity
+
+
+def calculate_euclidean_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
+    similarity: float = 1 - euclidean(v1, v2)
+    return similarity
+
+
+def calculate_minkowski_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
+    similarity: float = 1 - minkowski(v1, v2)
     return similarity
 
 
