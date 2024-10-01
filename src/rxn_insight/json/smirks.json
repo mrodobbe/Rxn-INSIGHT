@@ -490,3 +490,40 @@
 {"name":"C-methylation","smirks":"[CX4;H3;D1;+0:1].[*]-[C;H3;D1;+0:2]>>[CX4;H2;D2;+0:1]-[C;H3;D1;+0:2]"}
 {"name":"C-methylation","smirks":"[#6X3;H1;D2;+0:1].[*]-[C;H3;D1;+0:2]>>[#6X3;H0;D3;+0:1]-[C;H3;D1;+0:2]"}
 {"name":"C-methylation","smirks":"[#6X3;H1;D2;+0:1].[*]-[C;H3;D1;+0:2]>>[#6X4;H1;D3;+0:1]-[C;H3;D1;+0:2]"}
+{"name":"1,2-amino oxygenation of alkenes","smirks":"[NH;D2;+0:1].[CX3;!H0;+0:2]=[CX3;!H0;+0:3].[OH;D1;+0:4]>>[N;H0;D3;+0:1]-[CX4;+0:2]-[CX4;+0:3]-[O;H0;D2;+0:4]"}
+{"name":"Friedel-Crafts acylation of alkynes","smirks":"[C;X2;+0:3]#[C;X2;+0:4].[Cl;H0;D1;+0:5]-[C;H0;D3;+0:6](=[O;D1;H0:7])>>[C;H0;D3;+0:3](-[Cl;H0;D1;+0:5])=[CH;D2;+0:4]\\[C;H0;D3;+0:6](=[O;D1;H0:7])"}
+{"name":"N-glutarimide deprotection","smirks":"O=C1-C-C-C-C(=O)-[N;H0;D3;+0:1]-1-[C;D3;H0:2]=[O;D1;H0:3]>>[NH2;D1;+0:1]-[C;D3;H0:2]=[O;D1;H0:3]"}
+{"name":"Ynamide synthesis","smirks":"[C;H0;D2;+0:2]#[C;H1;D1;+0:3].[N;H1;D2;+0:9]>>[C;H0;D2;+0:2]#[C;H0;D2;+0:3]-[N;H0;D3;+0:9]"}
+{"name":"Csp3–Csp2 cross-coupling of alkylarenes to aldehydes","smirks":"[CH3;D1;+0:1]-[c;D3;+0:2].[C;H1;D2;+0:7]=[O;D1;H0:8]>>[C;H0;D3;+0:7](=[O;D1;H0:8])-[C;H2;D2;+0:1]-[c;D3;+0:2]"}
+{"name":"Coupling of benzylboronic esters with aldehydes","smirks":"C-C1(-C)-O-B(-[C;H2;D2;+0:1]-[c;D3;+0:2])-O-C-1(-C)-C.[O;H0;D1;+0:5]=[C;X3;+0:6]-[c;D3;+0:7]>>[OH;D1;+0:5]-[C;X4;+0:6](-[C;H2;D2;+0:1]-[c;D3;+0:2])-[c;D3;+0:7]"}
+{"name":"Coupling of benzylboronic esters with imines","smirks":"C-C1(-C)-O-B(-[C;H2;D2;+0:1]-[c;D3;+0:2])-O-C-1(-C)-C.[N;H0;D2;+0:5]=[C;X3;+0:6]-[c;D3;+0:7]>>[NH;D2;+0:5]-[C;X4;+0:6](-[C;H2;D2;+0:1]-[c;D3;+0:2])-[c;D3;+0:7]"}
+{"name":"Hydrofluorination of methallyl alkenes","smirks":"[C;H0;D3;+0:3](-[C;D1;H3:4])=[CH2;D1;+0:5]>>[C;H0;D4;+0:3](-[C;D1;H3:4])(-[CH3;D1;+0:5])-[F;D1;H0:6]"}
+{"name":"Amine to azide","smirks":"[NH2;D1;+0:1]>>[N;-;D1;H0:5]=[#7;+:6]=[N;H0;D2;+0:1]"}
+{"name":"Phthalimide deprotection","smirks":"O=C1-[N;H0;D3;+0:1]-C(=O)-c2:c:c:c:c:c:2-1>>[NH2;D1;+0:1]"}
+{"name":"Alcohol to triflate conversion","smirks":"F-C(-F)(-F)-S(=O)(=O)-O-[S;H0;D4;+0:1](=[O;D1;H0:2])(=[O;D1;H0:3])-[C:4](-[F;D1;H0:5])(-[F;D1;H0:6])-[F;D1;H0:7].[OH;D1;+0:8]>>[F;D1;H0:5]-[C:4](-[F;D1;H0:6])(-[F;D1;H0:7])-[S;H0;D4;+0:1](=[O;D1;H0:2])(=[O;D1;H0:3])-[O;H0;D2;+0:8]"}
+{"name":"1,2,4-oxadiazol-5(2H)-one synthesis from nitrile, hydrogen carbonate, and hydroxylamine","smirks":"O-[C;H0;D3;+0:1](-[O-])=[O;D1;H0:2].[N;H0;D1;+0:3]#[C;H0;D2;+0:4].[NH3+;D1:11]-[OH;D1;+0:12]>>[O;D1;H0:2]=[c;H0;D3;+0:1]1:[nH;D2;+0:3]:[c;H0;D3;+0:4]:[n;H0;D2;+0:11]:[o;H0;D2;+0:12]:1"}
+{"name":"TMS deprotection from alkyne","smirks":"C-[Si](-C)(-C)-[C;H0;D2;+0:1]#[C;X2;+0:2]>>[CH;D1;+0:1]#[C;X2;+0:2]"}
+{"name":"Carboxylic acid to carboxylate","smirks":"[C;D3;H0;+0:2](=[O;D1;H0:3])-[OH;D1;+0:4]>>[C;D3;H0;+0:2](-[O-;H0;D1:4])=[O;D1;H0:3]"}
+{"name":"Ester to carboxylate","smirks":"[C;D3;H0;+0:2](=[O;D1;H0:3])-[O;D2;H0;+0:4]-[C;X4;+0]>>[C;D3;H0;+0:2](-[O-;H0;D1:4])=[O;D1;H0:3]"}
+{"name":"Acetic anhydride and alcohol to ester","smirks":"C-C(=O)-O-[C;H0;D3;+0:1](-[C;D1;H3:2])=[O;D1;H0:3].[OH;D1;+0:4]>>[C;D1;H3:2]-[C;H0;D3;+0:1](=[O;D1;H0:3])-[O;H0;D2;+0:4]"}
+{"name":"PBr3 and alcohol to alkyl bromide","smirks":"Br-P(-Br)-[Br;H0;D1;+0:1].[O;H1;D1;+0]-[C;H2;D2;+0:2]>>[Br;H0;D1;+0:1]-[C;H2;D2;+0:2]"}
+{"name":"Nitrile and hydrogen peroxide to amide","smirks":"O-[OH;D1;+0:1].[N;H0;D1;+0:2]#[C;H0;D2;+0:3]>>[NH2;D1;+0:2]-[C;H0;D3;+0:3]=[O;H0;D1;+0:1]"}
+{"name":"Appel reaction","smirks":"Br-C(-Br)(-Br)-[Br;H0;D1;+0:1].[O;H1;D1;+0]-[C;X4;!D0;+0:2]>>[Br;H0;D1;+0:1]-[CH2;D2;+0:2]"}
+{"name":"Carboxylic acid to amide conversion","smirks":"[O;H1;D1;+0]-[C;H0;D3;+0:1](=[O;D1;H0:2]).[NH4+;D0:6]>>[NH2;D1;+0:6]-[C;H0;D3;+0:1](=[O;D1;H0:2])"}
+{"name":"Carboxylic acid to amide conversion","smirks":"[O;H1;D1;+0]-[C;H0;D3;+0:1](=[O;D1;H0:2]).[N;H3;D0;+0:6]>>[NH2;D1;+0:6]-[C;H0;D3;+0:1](=[O;D1;H0:2])"}
+{"name":"Carboxylate to carboxylic acid","smirks":"[C;D3;H0;+0:2](-[O-;H0;D1:4])=[O;D1;H0:3]>>[C;D3;H0;+0:2](=[O;D1;H0:3])-[OH;D1;+0:4]"}
+{"name":"Aldehyde and ketone to alpha,beta-unsaturated carbonyl","smirks":"[O;H0;D1;+0]=[C;H1;D2;+0:1].[C;X4;!D3;+0:5]-[C;H0;D3;+0:6]=[O;D1;H0:7]>>[O;D1;H0:7]=[C;H0;D3;+0:6]-[C;X3;+0:5]=[CH;D2;+0:1]"}
+{"name":"Bouveault aldehyde synthesis","smirks":"[Cl,Br,I;D1;+0]-[*;+0:1].[N;D3;+0]-[C;H1;D2;+0:6]=[O;D1;H0;+0:7]>>[O;D1;H0:7]=[CH;D2;+0:6]-[*:1]"}
+{"name":"Bouveault aldehyde synthesis","smirks":"[Cl,Br,I;D1;+0]-[*;+0:1].[N;D3;+0]-[C;H1;D2;+0:6]=[O;D1;H0;+0:7]>>[O;D1;H0:7]=[CH;D2;+0:6]-[*:1]"}
+{"name":"Tert-butyl deprotection of amine","smirks":"C-C(-C)(-C)-[NH;D2;+0:1]>>[NH2;D1;+0:1]"}
+{"name":"Chan-Lam etherification","smirks":"O-B(-O)-[c;H0;D3;+0:1].[OH;D1;+0:6]-[c;D3;H0;+0:7]>>[c;D3;H0;+0:7]-[O;H0;D2;+0:6]-[c;H0;D3;+0:1]"}
+{"name":"N-hydroxyimidamide from nitrile and hydroxylamine","smirks":"[N;H0;D1;+0:1]#[C;H0;D2;+0:2].[NH2;D1;+0:6]-[O;D1;H1:7]>>[NH;D1;+0:1]=[C;H0;D3;+0:2](-[NH;D2;+0:6]-[O;D1;H1:7])"}
+{"name":"Amidoxime from nitrile and hydroxylamine","smirks":"[N;H0;D1;+0:1]#[C;H0;D2;+0:2].[NH2;D1;+0:6]-[O;D1;H1:7]>>[NH2;D1;+0:1]-[C;H0;D3;+0:2](=[N;H0;D2;+0:6]-[O;D1;H1:7])"}
+{"name":"Amine and thiophosgene to isothiocyanate","smirks":"Cl-[C;H0;D3;+0:1](-Cl)=[S;D1;H0:2].[NH2;D1;+0:3]>>[S;D1;H0:2]=[C;H0;D2;+0:1]=[N;H0;D2;+0:3]"}
+{"name":"Phthalic anhydride to phthalimide","smirks":"[NH2;D1;+0:1].[O;D1;H0:5]=[C;H0;D3;+0:6]1-O-[C;H0;D3;+0:7](=[O;D1;H0:8])-[c:9](:[c:10]):[c:11]-1:[c:12]>>[O;D1;H0:5]=[C;H0;D3;+0:6]1-[N;H0;D3;+0:1]-[C;H0;D3;+0:7](=[O;D1;H0:8])-[c:9](:[c:10]):[c:11]-1:[c:12]"}
+{"name":"Hydrazine synthesis from amine","smirks":"O=[N;H0;D2;+0:1]-[O-].[NH2;D1;+0:2]>>[NH2;D1;+0:1]-[NH;D2;+0:2]"}
+{"name":"Reduction of primary amides to amines","smirks":"O=C-[NH;D2;+0:1]>>[NH2;D1;+0:1]"}
+{"name":"1,2-oxazole from oxime chloride and alkyne","smirks":"\"Cl-[C;H0;D3;+0:1]=[N;H0;D2;+0:4]-[OH;D1;+0:5].[C;X2;+0:6]#[C;H0;D2;+0:7]>>[c;H0;D3;+0:7]1:[cH;D2;+0:6]:[c;H0;D3;+0:1]:[n;H0;D2;+0:4]:[o;H0;D2;+0:5]:1\""}
+{"name":"Alcohol to triflate conversion","smirks":"F-C(-F)(-F)-S(=O)(=O)-N(-c1:c:c:c:c:c:1)-[S;H0;D4;+0:1](=[O;D1;H0:2])(=[O;D1;H0:3])-[C:4](-[F;D1;H0:5])(-[F;D1;H0:6])-[F;D1;H0:7].[OH;D1;+0:8]>>[F;D1;H0:5]-[C:4](-[F;D1;H0:6])(-[F;D1;H0:7])-[S;H0;D4;+0:1](=[O;D1;H0:2])(=[O;D1;H0:3])-[O;H0;D2;+0:8]"}
+{"name":"Aromatic sulfonyl chlorination","smirks":"O=[S;H0;D4;+0:1](-[Cl;D1;H0:2])(=[O;D1;H0:3])-[OH;D1;+0:4].[cH;D2;+0:7]>>[Cl;D1;H0:2]-[S;H0;D4;+0:1](=[O;D1;H0:3])(=[O;H0;D1;+0:4])-[c;H0;D3;+0:7]"}
+{"name":"Ring opening of epoxide with amine","smirks":"[C;X4;+0:3]1-[C;H2;D2;+0:4]-[O;H0;D2;+0:5]-1.[NH;D2;+0:8]>>[C;X4;+0:3](-[OH;D1;+0:5])-[CH2;D2;+0:4]-[N;H0;D3;+0:8]"}
