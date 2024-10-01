@@ -36,6 +36,7 @@ class ReactionClassifier:
         reaction: str,
         rxn_mapper: Optional[RXNMapper] = None,
         keep_mapping: bool = False,
+        search_template: bool = True
     ):
         """Initializes the ReactionClassifier with the specified reaction and options.
 
@@ -63,10 +64,14 @@ class ReactionClassifier:
         self.sanitized_mapped_reaction, self.sanitized_reaction, self.extra_agents = (
             sanitize_mapped_reaction(self.mapped_reaction)
         )
-        self.template = get_reaction_template(
-            self.sanitized_mapped_reaction, radius_reactants=1, radius_products=0
-        )
-        self.template_smiles = self.get_template_smiles()
+        if search_template:
+            self.template = get_reaction_template(
+                self.sanitized_mapped_reaction, radius_reactants=1, radius_products=0
+            )
+            self.template_smiles = self.get_template_smiles()
+        else:
+            self.template = ""
+            self.template_smiles = ""
         self.reactants, self.products = self.sanitized_mapped_reaction.split(">>")
         self.reactant_mols = tuple(
             [Chem.MolFromSmiles(mol) for mol in self.reactants.split(".")]
