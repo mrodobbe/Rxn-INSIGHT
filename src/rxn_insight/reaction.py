@@ -42,6 +42,7 @@ class Reaction:
         keep_mapping: bool = False,
         smirks: pd.DataFrame = None,
         fg: pd.DataFrame = None,
+        search_template: bool = True
     ):
         """Initializes a Reaction object with reaction details and optional components.
 
@@ -71,7 +72,7 @@ class Reaction:
         self.smirks_db = smirks
         self.fg_db = fg
         self.classifier = ReactionClassifier(
-            reaction, rxn_mapper=rxn_mapper, keep_mapping=keep_mapping
+            reaction, rxn_mapper=rxn_mapper, keep_mapping=keep_mapping, search_template=search_template
         )
         self.add_agents()
         self.reactants, self.products = self.classifier.sanitized_reaction.split(">>")
