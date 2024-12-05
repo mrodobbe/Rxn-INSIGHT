@@ -21,3 +21,14 @@ def test_acylation():
     rxn_info = rxn.get_reaction_info()
 
     assert rxn_info["CLASS"] == 'Acylation'
+
+
+def test_other_reaction():
+    """
+    Checks whether the protection reaction is named correctly.
+    """
+    rxn_smiles = "CC>>OCCCCCO"
+    rxn = Reaction(rxn_smiles)
+    rxn_info = rxn.get_reaction_info()
+
+    assert rxn_info["NAME"] == 'OtherReaction'

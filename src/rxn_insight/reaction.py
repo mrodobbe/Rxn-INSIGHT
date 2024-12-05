@@ -29,7 +29,51 @@ from rxn_insight.utils import (
 
 
 class Reaction:
-    """This class handles operations related to chemical reactions."""
+
+    """Handles operations related to chemical reactions.
+
+    This class facilitates various operations on chemical reactions, such as
+    parsing reaction strings, identifying components like solvents and reagents,
+    classifying reactions, and analyzing ring structures.
+
+    Attributes:
+        reaction (str): The SMILES representation of the reaction.
+        solvent (str): Solvents used in the reaction.
+        reagent (str): Reagents used in the reaction.
+        catalyst (str): Catalysts used in the reaction.
+        reference (str): Reference or note associated with the reaction.
+        smirks_db (pd.DataFrame): Database of SMIRKS transformations.
+        fg_db (pd.DataFrame): Functional group data.
+        classifier (ReactionClassifier): Reaction classification object.
+        reactants (str): SMILES string of the reactants.
+        products (str): SMILES string of the products.
+        mapped_reaction (str): Reaction with atom mappings included.
+        reaction_class (str): Class of the reaction.
+        template (str): Reaction template derived from the classifier.
+        reaction_info (dict): Additional information about the reaction.
+        tag (str): Optional tag for the reaction.
+        name (str): Optional name of the reaction.
+        byproducts (tuple): Tuple of byproducts in the reaction.
+        scaffold (str): Molecular scaffold of the reaction.
+        neighbors (Any): Placeholder for reaction neighborhood information.
+        suggested_solvent (str): Suggested solvent for the reaction.
+        suggested_catalyst (str): Suggested catalyst for the reaction.
+        suggested_reagent (str): Suggested reagent for the reaction.
+
+    Example:
+        >>> from rxn_insight.reaction import Reaction
+        >>> rxn = Reaction("OB(O)c1ccccc1.Brc1ccccc1>>c1ccc(-c2ccccc2)cc1")
+        >>> ri = rxn.get_reaction_info()
+        >>> print(ri)
+        {'REACTION': 'Brc1ccccc1.OB(O)c1ccccc1>>c1ccc(-c2ccccc2)cc1',
+        'MAPPED_REACTION': 'Br[c:5]1[cH:6][cH:7][cH:8][cH:9][cH:10]1.OB(O)[c:4]1[cH:3][cH:2][cH:1][cH:12][cH:11]1>>[cH:1]1[cH:2][cH:3][c:4](-[c:5]2[cH:6][cH:7][cH:8][cH:9][cH:10]2)[cH:11][cH:12]1',
+        'N_REACTANTS': 2, 'N_PRODUCTS': 1, 'FG_REACTANTS': ['Aromatic halide', 'Boronic acid'], 'FG_PRODUCTS': [],
+        'PARTICIPATING_RINGS_REACTANTS': ['c1ccccc1', 'c1ccccc1'], 'PARTICIPATING_RINGS_PRODUCTS': ['c1ccccc1', 'c1ccccc1'],
+        'ALL_RINGS_PRODUCTS': ['c1ccccc1', 'c1ccccc1'], 'BY-PRODUCTS': ['HBr', 'B'], 'CLASS': 'C-C Coupling',
+        'TAG': 'd79a78c79f0c392f0911481acf5c300cc98205269acdb93c24fb610a61c4c868', 'SOLVENT': [''], 'REAGENT': [''],
+        'CATALYST': [''], 'REF': '', 'NAME': 'Suzuki coupling with boronic acids', 'SCAFFOLD': 'c1ccc(-c2ccccc2)cc1'}
+
+    """
 
     def __init__(
         self,
@@ -42,20 +86,24 @@ class Reaction:
         keep_mapping: bool = False,
         smirks: pd.DataFrame = None,
         fg: pd.DataFrame = None,
+        search_template: bool = True
     ):
-        """Initializes a Reaction object with reaction details and optional components.
+
+        """Initializes a Reaction object with details of the reaction.
 
         Args:
-            reaction: A string representing the reaction in SMILES format.
-            solvent: A string of solvents used in the reaction.
-            reagent: A string of reagents used in the reaction.
-            catalyst: A string of catalysts used in the reaction.
-            ref: Reference or note associated with the reaction.
-            rxn_mapper: An optional RXNMapper object for reaction mapping.
-            keep_mapping: A boolean indicating if atom mappings should be preserved.
-            smirks: A DataFrame containing SMIRKS transformations.
-            fg: A DataFrame containing functional groups data.
+            reaction (str): A string representing the reaction in SMILES format.
+            solvent (str, optional): Solvent(s) used in the reaction. Defaults to an empty string.
+            reagent (str, optional): Reagent(s) used in the reaction. Defaults to an empty string.
+            catalyst (str, optional): Catalyst(s) used in the reaction. Defaults to an empty string.
+            ref (str, optional): Reference or note associated with the reaction. Defaults to an empty string.
+            rxn_mapper (RXNMapper, optional): Object for reaction mapping. Defaults to None.
+            keep_mapping (bool, optional): Whether to retain atom mappings in the reaction. Defaults to False.
+            smirks (pd.DataFrame, optional): DataFrame of SMIRKS transformations. Defaults to None.
+            fg (pd.DataFrame, optional): DataFrame of functional groups data. Defaults to None.
+            search_template (bool, optional): Whether to search for reaction templates. Defaults to True.
         """
+
         self.reaction = ""
         self.solvent = solvent
         self.reagent = reagent
@@ -71,7 +119,7 @@ class Reaction:
         self.smirks_db = smirks
         self.fg_db = fg
         self.classifier = ReactionClassifier(
-            reaction, rxn_mapper=rxn_mapper, keep_mapping=keep_mapping
+            reaction, rxn_mapper=rxn_mapper, keep_mapping=keep_mapping, search_template=search_template
         )
         self.add_agents()
         self.reactants, self.products = self.classifier.sanitized_reaction.split(">>")
@@ -88,12 +136,17 @@ class Reaction:
         self.suggested_catalyst = ""
         self.suggested_reagent = ""
 
-    def read_reaction(self, reaction: str) -> None:
-        """Processes the given reaction string to extract and format components.
+    def read_reaction(
+            self,
+            reaction: str
+    ) -> None:
+
+        """Processes a reaction string in SMILES format.
 
         Args:
-            reaction: The reaction string in SMILES format.
+            reaction (str): Reaction string in SMILES format, with components separated by `>`.
         """
+
         reaction_elements = reaction.split(">")
         self.reaction = f"{reaction_elements[0]}>>{reaction_elements[2]}"
         reagents = reaction_elements[1].split(".")
@@ -111,7 +164,7 @@ class Reaction:
             self.reagent = ".".join(agents)
 
     def add_agents(self) -> None:
-        """Adds agents from the classifier to the reagent list."""
+        """Adds agents identified by the classifier to the reagent list."""
         reagents = self.reagent.split(".")
         reagents += self.classifier.extra_agents
         self.reagent = ".".join(reagents)
@@ -187,7 +240,11 @@ class Reaction:
         return self.name
 
     def get_reaction_info(self) -> dict[str, list[str] | str]:
-        """Compiles detailed information about the reaction and its components."""
+
+        """This function compiles all reaction-related information at once. Upon calling this function,
+        the T-matrix of the reaction will be calculated, a class and name will be assigned, the functional groups,
+        rings, and scaffold of the reaction are determined. All information is returned as a dictionary."""
+
         if self.fg_db is None:
             from importlib import resources
 
@@ -255,6 +312,12 @@ class Reaction:
             threshold: The similarity threshold to consider for matching.
             broaden: Whether to use a broadened search criteria based on tags.
             full_search: If true, performs an exhaustive search across the database.
+
+        Example:
+            >>> from rxn_insight.reaction import Reaction
+            >>> df_uspto = pd.read_parquet("uspto_rxn_insight.gzip")  # Download: https://zenodo.org/records/10171745
+            >>> rxn = Reaction("OB(O)c1ccccc1.Brc1ccccc1>>c1ccc(-c2ccccc2)cc1")
+            >>> df_neighbors = rxn.find_neighbors(df_uspto)
         """
         self.get_reaction_info()
         if full_search:
@@ -374,6 +437,13 @@ class Reaction:
 
         Args:
             df: The DataFrame containing reaction data to analyze.
+
+        Example:
+            >>> from rxn_insight.reaction import Reaction
+            >>> df_uspto = pd.read_parquet("uspto_rxn_insight.gzip")  # Download: https://zenodo.org/records/10171745
+            >>> rxn = Reaction("OB(O)c1ccccc1.Brc1ccccc1>>c1ccc(-c2ccccc2)cc1")
+            >>> df_conditions = rxn.suggest_conditions(df_uspto)
+
         """
         if self.neighbors is None or len(self.neighbors.index) == 0:
             nbs = self.find_neighbors(df, max_return=5000, threshold=0.3, broaden=True)
