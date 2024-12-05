@@ -649,10 +649,8 @@ def get_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any], metric: str = "ja
     Calculate the similarity between two fingerprints using a specified metric.
 
     Supported metrics include:
-    - Binary metrics: `jaccard`, `dice`, `kulczynski1`, `rogerstanimoto`, `russellrao`, `sokalmichener`,
-      `sokalsneath`, `yule`.
-    - Distance-based metrics: `braycurtis`, `canberra`, `chebyshev`, `manhattan`, `correlation`,
-      `cosine`, `euclidean`, `minkowski`.
+    - Binary metrics: `jaccard`, `dice`, `kulczynski1`, `rogerstanimoto`, `russellrao`, `sokalmichener`, `sokalsneath`, `yule`.
+    - Distance-based metrics: `braycurtis`, `canberra`, `chebyshev`, `manhattan`, `correlation`, `cosine`, `euclidean`, `minkowski`.
 
     Args:
         v1 (npt.NDArray[Any]): Reference fingerprint as a NumPy array.
