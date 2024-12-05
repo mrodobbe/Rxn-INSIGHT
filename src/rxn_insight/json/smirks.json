@@ -523,7 +523,6 @@
 {"name":"Phthalic anhydride to phthalimide","smirks":"[NH2;D1;+0:1].[O;D1;H0:5]=[C;H0;D3;+0:6]1-O-[C;H0;D3;+0:7](=[O;D1;H0:8])-[c:9](:[c:10]):[c:11]-1:[c:12]>>[O;D1;H0:5]=[C;H0;D3;+0:6]1-[N;H0;D3;+0:1]-[C;H0;D3;+0:7](=[O;D1;H0:8])-[c:9](:[c:10]):[c:11]-1:[c:12]"}
 {"name":"Hydrazine synthesis from amine","smirks":"O=[N;H0;D2;+0:1]-[O-].[NH2;D1;+0:2]>>[NH2;D1;+0:1]-[NH;D2;+0:2]"}
 {"name":"Reduction of primary amides to amines","smirks":"O=C-[NH;D2;+0:1]>>[NH2;D1;+0:1]"}
-{"name":"1,2-oxazole from oxime chloride and alkyne","smirks":"\"Cl-[C;H0;D3;+0:1]=[N;H0;D2;+0:4]-[OH;D1;+0:5].[C;X2;+0:6]#[C;H0;D2;+0:7]>>[c;H0;D3;+0:7]1:[cH;D2;+0:6]:[c;H0;D3;+0:1]:[n;H0;D2;+0:4]:[o;H0;D2;+0:5]:1\""}
 {"name":"Alcohol to triflate conversion","smirks":"F-C(-F)(-F)-S(=O)(=O)-N(-c1:c:c:c:c:c:1)-[S;H0;D4;+0:1](=[O;D1;H0:2])(=[O;D1;H0:3])-[C:4](-[F;D1;H0:5])(-[F;D1;H0:6])-[F;D1;H0:7].[OH;D1;+0:8]>>[F;D1;H0:5]-[C:4](-[F;D1;H0:6])(-[F;D1;H0:7])-[S;H0;D4;+0:1](=[O;D1;H0:2])(=[O;D1;H0:3])-[O;H0;D2;+0:8]"}
 {"name":"Aromatic sulfonyl chlorination","smirks":"O=[S;H0;D4;+0:1](-[Cl;D1;H0:2])(=[O;D1;H0:3])-[OH;D1;+0:4].[cH;D2;+0:7]>>[Cl;D1;H0:2]-[S;H0;D4;+0:1](=[O;D1;H0:3])(=[O;H0;D1;+0:4])-[c;H0;D3;+0:7]"}
 {"name":"Ring opening of epoxide with amine","smirks":"[C;X4;+0:3]1-[C;H2;D2;+0:4]-[O;H0;D2;+0:5]-1.[NH;D2;+0:8]>>[C;X4;+0:3](-[OH;D1;+0:5])-[CH2;D2;+0:4]-[N;H0;D3;+0:8]"}
