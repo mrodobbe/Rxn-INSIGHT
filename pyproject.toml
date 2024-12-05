@@ -55,7 +55,7 @@ doc = [
     "myst-parser",
     "sphinx>=5",
     "sphinx-copybutton",
-    "sphinxcontrib.bibtex",
+    "sphinxcontrib-bibtex",
     "sphinx_rtd_theme",
 ]
 
