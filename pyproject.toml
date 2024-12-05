@@ -18,6 +18,7 @@ dependencies = [
     "tqdm",
     "openpyxl",
     "ipykernel",
+    "sphinx-rtd-theme",
 ]
 authors = [
     {name = "Maarten R. Dobbelaere", email = "mrodobbe.dobbelaere@ugent.be"}
@@ -57,7 +58,6 @@ doc = [
     "sphinx-copybutton",
     "sphinx-book-theme",
     "sphinx-rtd-theme",
-    "sphinx_rtd_theme",
 ]
 
 [tool.hatch.version]
