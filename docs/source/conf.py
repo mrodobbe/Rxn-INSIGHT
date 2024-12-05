@@ -22,7 +22,6 @@ release = '0.1.1'
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
-    "autoapi.extension",
     "sphinx.ext.mathjax",
     "sphinx.ext.viewcode",
     "sphinx.ext.doctest",
