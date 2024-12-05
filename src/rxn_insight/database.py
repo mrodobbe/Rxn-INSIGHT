@@ -172,7 +172,7 @@ class Database:
             fname: The name of the output file (without extension).
         """
 
-        self.df.to_csv(f"{fname}.gzip")
+        self.df.to_csv(f"{fname}.csv")
 
     def save_to_excel(self, fname: str):
 
