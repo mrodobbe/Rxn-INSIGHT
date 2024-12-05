@@ -17,10 +17,7 @@ Rxn-INSIGHT can be installed from PyPI using pip (on python 3.10 or 3.11):
 
 ``pip install rxn_insight``
 
-Please cite the Rxn-INSIGHT paper, if you use it in your own work:
-
-.. footbibliography::
-
+Please cite the Rxn-INSIGHT paper, if you use it in your own work.
 
 .. toctree::
    :maxdepth: 2

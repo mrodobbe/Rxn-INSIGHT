@@ -24,7 +24,6 @@ extensions = [
     'sphinx.ext.napoleon',  # Support for Google and NumPy-style docstrings
     'sphinx.ext.viewcode',  # Add links to highlighted source code
     'sphinx.ext.intersphinx',  # Link to documentation of other projects
-    'sphinxcontrib.bibtex',
 ]
 
 bibtex_bibfiles = ['refs.bib']
