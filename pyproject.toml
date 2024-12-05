@@ -39,7 +39,7 @@ dynamic = ["version"]
 [project.urls]
 source = "https://github.com/mrodobbe/rxn-insight"
 tracker = "https://github.com/mrodobbe/rxn-insight/issues"
-documentation = "https://rxn-insight.readthedocs.io"
+# documentation = "https://rxn-insight.readthedocs.io"
 
 [project.optional-dependencies]
 test = [
