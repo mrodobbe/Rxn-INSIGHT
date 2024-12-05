@@ -57,6 +57,7 @@ doc = [
     "sphinx-copybutton",
     "sphinx-book-theme",
     "sphinx-rtd-theme",
+    "sphinx_rtd_theme",
 ]
 
 [tool.hatch.version]
