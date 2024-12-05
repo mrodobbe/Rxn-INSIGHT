@@ -20,10 +20,15 @@ release = '0.1.1'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    'sphinx.ext.autodoc',  # Automatically generate docs from docstrings
-    'sphinx.ext.napoleon',  # Support for Google and NumPy-style docstrings
-    'sphinx.ext.viewcode',  # Add links to highlighted source code
-    'sphinx.ext.intersphinx',  # Link to documentation of other projects
+    "nbsphinx",
+    "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
+    "autoapi.extension",
+    "sphinx.ext.mathjax",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.doctest",
+    "sphinxarg.ext",
+    "nbsphinx_link",
 ]
 
 bibtex_bibfiles = ['refs.bib']
@@ -35,5 +40,5 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'sphinx_book_theme'
+html_theme = 'alabaster'
 html_static_path = ['_static']
