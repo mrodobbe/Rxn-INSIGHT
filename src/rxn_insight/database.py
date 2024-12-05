@@ -8,7 +8,49 @@ from importlib import resources
 
 
 class Database:
+
+    """
+    A class to manage and analyze reaction datasets, providing functionalities
+    for creating databases, analyzing reactions, and saving results.
+
+    Example:
+        >>> from rxn_insight.database import Database
+        >>> import pandas as pd
+        >>> # Create a sample DataFrame
+        >>> data = {
+        ...     "reaction": ["OB(O)c1ccccc1.Brc1ccccc1>>c1ccc(-c2ccccc2)cc1"],
+        ...     "solvent": ["CN(C)C=O"],
+        ...     "reagent": ["F[Cs]"],
+        ...     "catalyst": ["[Pd]"],
+        ...     "yield": [85],
+        ...     "reference": ["Ref1"]
+        ... }
+        >>> df = pd.DataFrame(data)
+        >>> # Initialize a Database object
+        >>> db = Database()
+        >>> # Create a database from the DataFrame
+        >>> reaction_df = db.create_database_from_df(
+        ...     df,
+        ...     reaction_column="reaction",
+        ...     solvent_column="solvent",
+        ...     reagent_column="reagent",
+        ...     catalyst_column="catalyst",
+        ...     yield_column="yield",
+        ...     ref_column="reference"
+        ...     )
+
+    """
+
     def __init__(self, df: Union[pd.DataFrame, None] = None):
+
+        """
+        Initializes a Database object with an optional DataFrame.
+
+        Args:
+            df: An optional pandas DataFrame containing reaction data.
+
+    """
+
         if df is None:
             self.df = pd.DataFrame({})
         else:
@@ -27,6 +69,23 @@ class Database:
             yield_column: str = "YIELD",
             ref_column: str = "REF"
     ) -> pd.DataFrame:
+
+        """
+        Creates a reaction database from a given DataFrame.
+
+        Args:
+            df: A DataFrame containing reaction data.
+            reaction_column: Name of the column containing reaction SMILES.
+            solvent_column: Name of the solvent column (default: "SOLVENT").
+            reagent_column: Name of the reagent column (default: "REAGENT").
+            catalyst_column: Name of the catalyst column (default: "CATALYST").
+            yield_column: Name of the yield column (default: "YIELD").
+            ref_column: Name of the reference column (default: "REF").
+
+        Returns:
+            A DataFrame with analyzed reaction data.
+        """
+
         all_cols = ["SOLVENT", "REAGENT", "CATALYST", "YIELD", "REF"]
         df_protocol = df.rename(columns={reaction_column: "REACTION",
                                              solvent_column: "SOLVENT",
@@ -56,6 +115,23 @@ class Database:
             yield_column: str = "YIELD",
             ref_column: str = "REF"
     ) -> pd.DataFrame:
+
+        """
+        Creates a reaction database from a CSV file.
+
+        Args:
+            fname: Path to the CSV file.
+            reaction_column: Name of the column containing reaction SMILES.
+            solvent_column: Name of the solvent column (default: "SOLVENT").
+            reagent_column: Name of the reagent column (default: "REAGENT").
+            catalyst_column: Name of the catalyst column (default: "CATALYST").
+            yield_column: Name of the yield column (default: "YIELD").
+            ref_column: Name of the reference column (default: "REF").
+
+        Returns:
+            A DataFrame with analyzed reaction data.
+        """
+
         df_csv = pd.read_csv(fname, index_col=None)
         all_cols = ["SOLVENT", "REAGENT", "CATALYST", "YIELD", "REF"]
         df_protocol = df_csv.rename(columns={reaction_column: "REACTION",
@@ -77,22 +153,74 @@ class Database:
         return df
 
     def save_to_parquet(self, fname: str):
+
+        """
+        Saves the reaction database to a Parquet file.
+
+        Args:
+            fname: The name of the output file (without extension).
+        """
+
         self.df.to_parquet(f"{fname}.gzip")
 
     def save_to_csv(self, fname: str):
+
+        """
+        Saves the reaction database to a CSV file.
+
+        Args:
+            fname: The name of the output file (without extension).
+        """
+
         self.df.to_csv(f"{fname}.gzip")
 
     def save_to_excel(self, fname: str):
+
+        """
+        Saves the reaction database to an Excel file.
+
+        Args:
+            fname: The name of the output file (without extension).
+        """
+
         self.df.to_excel(f"{fname}.xlsx")
 
     def get_class_distribution(self):
+
+        """
+        Retrieves the class distribution of reactions in the database.
+
+        Returns:
+            A DataFrame summarizing the reaction class distribution.
+        """
+
         return self.class_distribution
 
     def get_name_distribution(self):
+
+        """
+        Retrieves the distribution of reaction names in the database.
+
+        Returns:
+            A DataFrame summarizing the reaction name distribution.
+        """
+
         return self.name_distribution
 
 
 def analyze_reactions(df: pd.DataFrame) -> Tuple[pd.DataFrame, List[str]]:
+
+    """
+    Analyzes a DataFrame of reactions to extract detailed information.
+
+    Args:
+        df: A DataFrame with reaction data.
+
+    Returns:
+        A tuple containing the updated DataFrame and a list of skipped reactions.
+
+    """
+
     headers = [
         'REACTANTS', 'PRODUCTS', 'SANITIZED_REACTION', 'MAPPED_REACTION', 'N_REACTANTS', 'N_PRODUCTS',
         'FG_REACTANTS', 'FG_PRODUCTS', 'PARTICIPATING_RINGS_REACTANTS', 'PARTICIPATING_RINGS_PRODUCTS',
@@ -152,6 +280,17 @@ def analyze_reactions(df: pd.DataFrame) -> Tuple[pd.DataFrame, List[str]]:
 
 
 def calculate_class_distribution(df: pd.DataFrame) -> pd.DataFrame:
+
+    """
+    Calculates the distribution of reaction classes.
+
+    Args:
+        df: A DataFrame containing reaction data.
+
+    Returns:
+        A DataFrame summarizing reaction class counts.
+    """
+
     class_dict = {"CLASS": [], "COUNT": []}
     classes = ['Acylation',
                'Heteroatom Alkylation and Arylation',
@@ -175,6 +314,17 @@ def calculate_class_distribution(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def calculate_name_distribution(df: pd.DataFrame) -> pd.DataFrame:
+
+    """
+    Calculates the distribution of reaction names.
+
+    Args:
+        df: A DataFrame containing reaction data.
+
+    Returns:
+        A DataFrame summarizing reaction name counts.
+    """
+
     names_dict = {"NAME": [], "COUNT": []}
     all_names = df["NAME"].to_list()
     unique_names = list(set(all_names))

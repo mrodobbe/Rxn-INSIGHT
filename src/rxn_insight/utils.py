@@ -644,15 +644,35 @@ def make_rdkit_fp(rxn: str, fp: str = "MACCS", concatenate: bool = True) -> str:
 
 
 def get_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any], metric: str = "jaccard") -> float:
-    """Calculate the similarity between two fingerprints. Available metrics are `jaccard`, `dice`,
-    `kulczynski1`, `rogerstanimoto`, `russellrao`, `sokalmichener`, `sokalsneath`, `yule`,
-    `braycurtis`, `canberra`, `chebyshev`, `manhattan`, `correlation`, `cosine`, `euclidean`, `minkowski`.
 
-    :param v1: Reference fingerprint in np.ndarray format
-    :param v2: Fingerprint to compare in np.ndarray format
-    :param metric: Metric to calculate the similarity with.
-    :return: similarity value as float
     """
+    Calculate the similarity between two fingerprints using a specified metric.
+
+    Supported metrics include:
+    - Binary metrics: `jaccard`, `dice`, `kulczynski1`, `rogerstanimoto`, `russellrao`, `sokalmichener`,
+      `sokalsneath`, `yule`.
+    - Distance-based metrics: `braycurtis`, `canberra`, `chebyshev`, `manhattan`, `correlation`,
+      `cosine`, `euclidean`, `minkowski`.
+
+    Args:
+        v1 (npt.NDArray[Any]): Reference fingerprint as a NumPy array.
+        v2 (npt.NDArray[Any]): Fingerprint to compare as a NumPy array.
+        metric (str): Metric to calculate the similarity. Default is `"jaccard"`.
+
+    Returns:
+        float: Calculated similarity score.
+
+    Raises:
+        ValueError: If an unsupported metric is provided.
+
+    Example:
+        >>> import numpy as np
+        >>> v1 = np.array([1, 0, 1, 1])
+        >>> v2 = np.array([1, 1, 1, 0])
+        >>> get_similarity(v1, v2, metric="jaccard")
+        0.6666666666666667
+    """
+
     metric = metric.lower()
 
     if metric == "jaccard":
@@ -694,83 +714,260 @@ def get_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any], metric: str = "ja
 
 
 def calculate_jaccard_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
-    similarity: float = 1 - jaccard(v1, v2)
-    return similarity
+    """
+    Calculate the Jaccard similarity between two vectors.
+
+    The Jaccard similarity measures the proportion of shared elements in two sets.
+    It is commonly used for binary vectors, indicating how similar the sets are.
+
+    Args:
+        v1 (npt.NDArray[Any]): First vector.
+        v2 (npt.NDArray[Any]): Second vector.
+
+    Returns:
+        float: Jaccard similarity (1 - Jaccard distance).
+    """
+    return 1 - jaccard(v1, v2)
 
 
 def calculate_dice_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
-    similarity: float = 1 - dice(v1, v2)
-    return similarity
+    """
+    Calculate the Dice similarity between two vectors.
+
+    Dice similarity is used for binary vectors and measures overlap between sets.
+
+    Args:
+        v1 (npt.NDArray[Any]): First vector.
+        v2 (npt.NDArray[Any]): Second vector.
+
+    Returns:
+        float: Dice similarity (1 - Dice distance).
+    """
+    return 1 - dice(v1, v2)
 
 
 def calculate_kulczynksi1_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
-    similarity: float = 1 - kulczynski1(v1, v2)
-    return similarity
+    """
+    Calculate the Kulczynski 1 similarity between two vectors.
+
+    Kulczynski similarity measures the average overlap between two sets.
+
+    Args:
+        v1 (npt.NDArray[Any]): First vector.
+        v2 (npt.NDArray[Any]): Second vector.
+
+    Returns:
+        float: Kulczynski 1 similarity.
+    """
+    return 1 - kulczynski1(v1, v2)
 
 
 def calculate_rogerstanimoto_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
-    similarity: float = 1 - rogerstanimoto(v1, v2)
-    return similarity
+    """
+    Calculate the Rogers-Tanimoto similarity between two vectors.
+
+    This metric evaluates similarity for binary vectors based on mismatched proportions.
+
+    Args:
+        v1 (npt.NDArray[Any]): First vector.
+        v2 (npt.NDArray[Any]): Second vector.
+
+    Returns:
+        float: Rogers-Tanimoto similarity.
+    """
+    return 1 - rogerstanimoto(v1, v2)
 
 
 def calculate_russellrao_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
-    similarity: float = 1 - russellrao(v1, v2)
-    return similarity
+    """
+    Calculate the Russell-Rao similarity between two vectors.
+
+    Russell-Rao similarity evaluates the proportion of matching 1's in binary vectors.
+
+    Args:
+        v1 (npt.NDArray[Any]): First vector.
+        v2 (npt.NDArray[Any]): Second vector.
+
+    Returns:
+        float: Russell-Rao similarity.
+    """
+    return 1 - russellrao(v1, v2)
 
 
 def calculate_sokalmichener_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
-    similarity: float = 1 - sokalmichener(v1, v2)
-    return similarity
+    """
+    Calculate the Sokal-Michener similarity between two vectors.
+
+    This metric is used for binary data, emphasizing matching 1's and 0's equally.
+
+    Args:
+        v1 (npt.NDArray[Any]): First vector.
+        v2 (npt.NDArray[Any]): Second vector.
+
+    Returns:
+        float: Sokal-Michener similarity.
+    """
+    return 1 - sokalmichener(v1, v2)
 
 
 def calculate_sokalsneath_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
-    similarity: float = 1 - sokalsneath(v1, v2)
-    return similarity
+    """
+    Calculate the Sokal-Sneath similarity between two vectors.
+
+    Sokal-Sneath similarity emphasizes 1's in binary data.
+
+    Args:
+        v1 (npt.NDArray[Any]): First vector.
+        v2 (npt.NDArray[Any]): Second vector.
+
+    Returns:
+        float: Sokal-Sneath similarity.
+    """
+    return 1 - sokalsneath(v1, v2)
 
 
 def calculate_yule_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
-    similarity: float = 1 - kulczynski1(v1, v2)
-    return similarity
+    """
+    Calculate the Yule similarity between two vectors.
+
+    Args:
+        v1 (npt.NDArray[Any]): First vector.
+        v2 (npt.NDArray[Any]): Second vector.
+
+    Returns:
+        float: Yule similarity.
+    """
+    return 1 - kulczynski1(v1, v2)
 
 
 def calculate_braycurtis_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
-    similarity: float = 1 - braycurtis(v1, v2)
-    return similarity
+    """
+    Calculate the Bray-Curtis similarity between two vectors.
+
+    This metric measures dissimilarity as the proportion of the absolute differences.
+
+    Args:
+        v1 (npt.NDArray[Any]): First vector.
+        v2 (npt.NDArray[Any]): Second vector.
+
+    Returns:
+        float: Bray-Curtis similarity.
+    """
+    return 1 - braycurtis(v1, v2)
 
 
 def calculate_canberra_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
-    similarity: float = 1 - canberra(v1, v2)
-    return similarity
+    """
+    Calculate the Canberra similarity between two vectors.
+
+    The Canberra similarity is based on the sum of absolute differences scaled by the sum of vector elements.
+    It emphasizes differences in smaller values.
+
+    Args:
+        v1 (npt.NDArray[Any]): First vector.
+        v2 (npt.NDArray[Any]): Second vector.
+
+    Returns:
+        float: Canberra similarity (1 - Canberra distance).
+    """
+    return 1 - canberra(v1, v2)
 
 
 def calculate_chebyshev_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
-    similarity: float = 1 - chebyshev(v1, v2)
-    return similarity
+    """
+    Calculate the Chebyshev similarity between two vectors.
+
+    The Chebyshev similarity is derived from the maximum absolute difference between elements in the two vectors.
+
+    Args:
+        v1 (npt.NDArray[Any]): First vector.
+        v2 (npt.NDArray[Any]): Second vector.
+
+    Returns:
+        float: Chebyshev similarity (1 - Chebyshev distance).
+    """
+    return 1 - chebyshev(v1, v2)
 
 
 def calculate_manhattan_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
-    similarity: float = 1 - cityblock(v1, v2)
-    return similarity
+    """
+    Calculate the Manhattan similarity between two vectors.
+
+    The Manhattan similarity (or city block similarity) is the sum of the absolute differences between elements in the vectors.
+
+    Args:
+        v1 (npt.NDArray[Any]): First vector.
+        v2 (npt.NDArray[Any]): Second vector.
+
+    Returns:
+        float: Manhattan similarity (1 - Manhattan distance).
+    """
+    return 1 - cityblock(v1, v2)
 
 
 def calculate_correlation_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
-    similarity: float = 1 - correlation(v1, v2)
-    return similarity
+    """
+    Calculate the Correlation similarity between two vectors.
+
+    The Correlation similarity measures the linear relationship between vectors, normalized to account for scale differences.
+
+    Args:
+        v1 (npt.NDArray[Any]): First vector.
+        v2 (npt.NDArray[Any]): Second vector.
+
+    Returns:
+        float: Correlation similarity (1 - Correlation distance).
+    """
+    return 1 - correlation(v1, v2)
 
 
 def calculate_cosine_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
-    similarity: float = 1 - cosine(v1, v2)
-    return similarity
+    """
+    Calculate the Cosine similarity between two vectors.
+
+    The Cosine similarity measures the cosine of the angle between two vectors, indicating their directional similarity.
+
+    Args:
+        v1 (npt.NDArray[Any]): First vector.
+        v2 (npt.NDArray[Any]): Second vector.
+
+    Returns:
+        float: Cosine similarity (1 - Cosine distance).
+    """
+    return 1 - cosine(v1, v2)
 
 
 def calculate_euclidean_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
-    similarity: float = 1 - euclidean(v1, v2)
-    return similarity
+    """
+    Calculate the Euclidean similarity between two vectors.
+
+    The Euclidean similarity is derived from the straight-line distance between two points in multidimensional space.
+
+    Args:
+        v1 (npt.NDArray[Any]): First vector.
+        v2 (npt.NDArray[Any]): Second vector.
+
+    Returns:
+        float: Euclidean similarity (1 - Euclidean distance).
+    """
+    return 1 - euclidean(v1, v2)
 
 
-def calculate_minkowski_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
-    similarity: float = 1 - minkowski(v1, v2)
-    return similarity
+def calculate_minkowski_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any], p: float = 3.0) -> float:
+    """
+    Calculate the Minkowski similarity between two vectors.
+
+    The Minkowski similarity generalizes the Manhattan and Euclidean similarities using a parameter `p` to determine the metric.
+
+    Args:
+        v1 (npt.NDArray[Any]): First vector.
+        v2 (npt.NDArray[Any]): Second vector.
+        p (float): The order of the Minkowski metric (default: 3.0).
+
+    Returns:
+        float: Minkowski similarity (1 - Minkowski distance).
+    """
+    return 1 - minkowski(v1, v2, p=p)
 
 
 def get_solvent_ranking(df: pd.DataFrame) -> pd.DataFrame:
