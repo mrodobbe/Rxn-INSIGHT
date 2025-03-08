@@ -390,24 +390,23 @@ def atom_remover(mol: Mol, matches: list[list[int]]) -> Mol:
     if not matches:
         return Chem.Mol(mol)
 
-    for match in matches:
-        match = list(match)
-        res = Chem.RWMol(mol)
-        res.BeginBatchEdit()
+    match = set(matches[0])  # Convert to set for faster lookups
 
-        for aid in reversed(range(res.GetNumAtoms())):
-            if aid not in match:
-                ring_checker, match = check_rings(res.GetAtomWithIdx(aid), res, match)
-                if not ring_checker:
-                    res.RemoveAtom(aid)
-        res.CommitBatchEdit()
+    res = Chem.RWMol(mol)
+    res.BeginBatchEdit()
 
-        try:
-            Chem.SanitizeMol(res)
-        except Exception:
-            pass
+    for aid in reversed(range(res.GetNumAtoms())):
+        if aid not in match:
+            res.RemoveAtom(aid)
 
-        return res
+    res.CommitBatchEdit()
+
+    try:
+        Chem.SanitizeMol(res)
+    except Exception:
+        pass
+
+    return res
 
 
 def draw_chemical_reaction(
