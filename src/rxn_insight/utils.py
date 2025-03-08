@@ -390,14 +390,42 @@ def atom_remover(mol: Mol, matches: list[list[int]]) -> Mol:
     if not matches:
         return Chem.Mol(mol)
 
-    match = set(matches[0])  # Convert to set for faster lookups
+    # We'll only process the first match (which is what the original code did)
+    match = list(matches[0])
 
+    # Create a new molecule
     res = Chem.RWMol(mol)
     res.BeginBatchEdit()
 
-    for aid in reversed(range(res.GetNumAtoms())):
-        if aid not in match:
-            res.RemoveAtom(aid)
+    # Collect ring information
+    ring_info = mol.GetRingInfo()
+    ring_atoms = set()
+    for ring in ring_info.AtomRings():
+        ring_atoms.update(ring)
+
+    # Check if this is a ring-related operation
+    is_ring_operation = all(idx in ring_atoms for idx in match)
+
+    # If this is a ring operation, preserve ONLY the exact match atoms
+    if is_ring_operation and len(match) >= 5:  # Assuming rings of size 5+
+        # Remove atoms that are not in the match (strictly enforce ring atoms only)
+        for aid in reversed(range(res.GetNumAtoms())):
+            if aid not in match:
+                res.RemoveAtom(aid)
+    else:
+        # For reaction templates, we need to preserve complete ring systems
+        atoms_to_keep = set(match)
+
+        # Add atoms that are part of the same ring as any atom in the match
+        for ring in ring_info.AtomRings():
+            if any(atom_idx in match for atom_idx in ring):
+                # If yes, add all atoms in that ring to atoms_to_keep
+                atoms_to_keep.update(ring)
+
+        # Now remove atoms not in our keep list
+        for aid in reversed(range(res.GetNumAtoms())):
+            if aid not in atoms_to_keep:
+                res.RemoveAtom(aid)
 
     res.CommitBatchEdit()
 
@@ -405,6 +433,16 @@ def atom_remover(mol: Mol, matches: list[list[int]]) -> Mol:
         Chem.SanitizeMol(res)
     except Exception:
         pass
+
+    # For reaction templates, try to ensure proper ring representation
+    if not is_ring_operation:
+        try:
+            smiles = Chem.MolToSmiles(res)
+            new_mol = Chem.MolFromSmiles(smiles)
+            if new_mol is not None:
+                return new_mol
+        except:
+            pass
 
     return res
 
