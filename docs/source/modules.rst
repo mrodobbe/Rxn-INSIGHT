@@ -1,4 +1,4 @@
-rxn_insight
+Rxn-INSIGHT
 ===========
 
 .. toctree::

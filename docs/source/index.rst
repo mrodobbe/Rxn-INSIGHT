@@ -17,7 +17,7 @@ Rxn-INSIGHT can be installed from PyPI using pip (on python 3.10 or 3.11):
 
 ``pip install rxn_insight``
 
-Please cite the Rxn-INSIGHT paper, if you use it in your own work.
+Please cite the Rxn-INSIGHT `paper <https://doi.org/10.1186/s13321-024-00834-z>`__, if you use it in your own work.
 
 .. footbibliography::
 
@@ -25,8 +25,12 @@ Please cite the Rxn-INSIGHT paper, if you use it in your own work.
    :maxdepth: 2
    :caption: Contents
 
+   rxn_insight
+   getting-started
+   common-use-cases
+   advanced-features
+   visualization-guide
    installation
-   modules
 
 
 Indices and tables

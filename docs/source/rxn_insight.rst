@@ -1,4 +1,4 @@
-rxn\_insight package
+Rxn-INSIGHT
 ====================
 
 Submodules
