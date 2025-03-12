@@ -1,5 +1,5 @@
 Advanced Features and API Reference
-===================================
+====================================
 
 This guide covers advanced features of the Rxn-INSIGHT package and
 provides a concise API reference for the core classes.

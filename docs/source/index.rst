@@ -23,14 +23,24 @@ Please cite the Rxn-INSIGHT `paper <https://doi.org/10.1186/s13321-024-00834-z>`
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents
+   :caption: Quickstart
+
+   installation
+   getting-started
+   advanced-features
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Guides
+
+   common-use-cases
+   visualization-guide
+
+.. toctree::
+   :maxdepth: 2
+   :caption: API Documentation
 
    rxn_insight
-   getting-started
-   common-use-cases
-   advanced-features
-   visualization-guide
-   installation
 
 
 Indices and tables

@@ -1,5 +1,5 @@
-Rxn-INSIGHT
-====================
+rxn_insight
+============
 
 Submodules
 ----------

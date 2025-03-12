@@ -1,5 +1,5 @@
-Getting Started with Rxn-INSIGHT
-================================
+Getting Started
+===============
 
 This quick-start guide will get you up and running with Rxn-INSIGHT in
 just a few minutes. We will cover installation, basic usage, and a simple

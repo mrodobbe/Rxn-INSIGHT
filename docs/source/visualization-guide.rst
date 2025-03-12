@@ -1,5 +1,5 @@
-Visualizing Chemical Reactions with Rxn-INSIGHT
-===============================================
+Visualizing Chemical Reactions
+==============================
 
 This tutorial demonstrates how to create effective visualizations of
 reactions, their components, and analysis results using Rxn-INSIGHT

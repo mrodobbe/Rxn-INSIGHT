@@ -1,4 +1,4 @@
-Rxn-INSIGHT: Common Use Cases
+Potential Use Cases
 =============================
 
 This guide demonstrates how Rxn-INSIGHT can be applied to solve specific
