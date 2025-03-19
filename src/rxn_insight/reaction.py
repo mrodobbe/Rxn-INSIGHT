@@ -2,7 +2,7 @@
 
 import hashlib
 import warnings
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -14,6 +14,7 @@ from rxn_insight.classification import ReactionClassifier
 from rxn_insight.utils import (
     atom_remover,
     curate_smirks,
+    draw_chemical_reaction,
     get_catalyst_ranking,
     get_fp,
     get_reagent_ranking,
@@ -61,8 +62,8 @@ class Reaction:
         suggested_reagent (str): Suggested reagent for the reaction.
 
     Example:
-        >>> from rxn_insight.reaction import Reaction
-        >>> rxn = Reaction("OB(O)c1ccccc1.Brc1ccccc1>>c1ccc(-c2ccccc2)cc1")
+        >>> import rxn_insight as ri
+        >>> rxn = ri.Reaction("OB(O)c1ccccc1.Brc1ccccc1>>c1ccc(-c2ccccc2)cc1")
         >>> ri = rxn.get_reaction_info()
         >>> print(ri)
         {'REACTION': 'Brc1ccccc1.OB(O)c1ccccc1>>c1ccc(-c2ccccc2)cc1',
@@ -203,7 +204,7 @@ class Reaction:
             from importlib import resources
 
             with resources.path(
-                f"{__package__}.json", "functional_groups.json"
+                f"{__package__}.data", "functional_groups.json"
             ) as path:
                 self.fg_db = pd.read_json(path, orient="records", lines=True)
         c = self.classifier
@@ -232,7 +233,7 @@ class Reaction:
         if self.smirks_db is None:
             from importlib import resources
 
-            with resources.path(f"{__package__}.json", "smirks.json") as path:
+            with resources.path(f"{__package__}.data", "smirks.json") as path:
                 self.smirks_db = curate_smirks(
                     pd.read_json(path, orient="records", lines=True)
                 )
@@ -249,7 +250,7 @@ class Reaction:
             from importlib import resources
 
             with resources.path(
-                f"{__package__}.json", "functional_groups.json"
+                f"{__package__}.data", "functional_groups.json"
             ) as path:
                 self.fg_db = pd.read_json(path, orient="records", lines=True)
 
@@ -439,9 +440,9 @@ class Reaction:
             df: The DataFrame containing reaction data to analyze.
 
         Example:
-            >>> from rxn_insight.reaction import Reaction
+            >>> import rxn_insight as ri
             >>> df_uspto = pd.read_parquet("uspto_rxn_insight.gzip")  # Download: https://zenodo.org/records/10171745
-            >>> rxn = Reaction("OB(O)c1ccccc1.Brc1ccccc1>>c1ccc(-c2ccccc2)cc1")
+            >>> rxn = ri.Reaction("OB(O)c1ccccc1.Brc1ccccc1>>c1ccc(-c2ccccc2)cc1")
             >>> df_conditions = rxn.suggest_conditions(df_uspto)
 
         """
@@ -468,190 +469,10 @@ class Reaction:
 
         return conditions_dict
 
-
-class Molecule:
-    """This class reads in SMILES."""
-
-    def __init__(self, smi: str):
-        """Initializes a Molecule object with the SMILES string of a molecule.
-
-        Args:
-            smi: A string containing the SMILES representation of the molecule.
-        """
-        self.mol = Chem.MolFromSmiles(smi)
-        self.smiles = Chem.MolToSmiles(self.mol)
-        self.inchi = Chem.MolToInchi(self.mol)
-        self.inchikey = Chem.MolToInchiKey(self.mol)
-        self.functional_groups = None
-        # self.rings = tuple() # Seems to be unused
-        self.scaffold = get_scaffold(self.mol)
-        self.maccs_fp = maccs_fp(self.mol)
-        self.morgan_fp = morgan_fp(self.mol)
-        self.reactions = None
-
-    def search_reactions(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Searches for reactions involving the molecule as a product.
-
-        Args:
-            df: The DataFrame to search for reactions.
-        """
-        if "PRODUCT" in df.keys():
-            dfc = df[df["PRODUCT"] == self.inchikey].copy()
-        else:
-            df["PRODUCT"] = ""
-            for i in tqdm(df.index):
-                try:
-                    prod = df["REACTION"][i].split(">>")[1]
-                    mol = Chem.MolFromSmiles(prod)
-                    df["PRODUCT"][i] = Chem.MolToInchiKey(mol)
-                except KeyboardInterrupt:
-                    raise
-                except Exception as e:
-                    print(e)
-                    continue
-            dfc = df[df["PRODUCT"] == self.inchikey].copy()
-
-        if "rxn_str_patt_fp" in dfc.keys():
-            dfc = dfc.drop(columns=["rxn_str_patt_fp"])
-        if "rxn_dif_patt_fp" in dfc.keys():
-            dfc = dfc.drop(columns=["rxn_dif_patt_fp"])
-        if "rxn_str_morgan_fp" in dfc.keys():
-            dfc = dfc.drop(columns=["rxn_str_morgan_fp"])
-        if "rxn_dif_morgan_fp" in dfc.keys():
-            dfc = dfc.drop(columns=["rxn_dif_morgan_fp"])
-        if "TAG" in dfc.keys():
-            dfc = dfc.drop(columns=["TAG"])
-        if "TAG2" in dfc.keys():
-            dfc = dfc.drop(columns=["TAG2"])
-
-        self.reactions = dfc
-
-        return dfc
-
-    def search_reactions_by_scaffold(
-        self,
-        df: pd.DataFrame,
-        threshold: float = 0.5,
-        max_return: int = 100,
-        fp: str = "MACCS",
-    ) -> pd.DataFrame:
-        """Searches for reactions based on scaffold similarity.
-
-        Args:
-            df: DataFrame containing reactions to search.
-            threshold: Similarity threshold to apply.
-            max_return: Maximum number of reactions to return.
-            fp: Type of fingerprint to use for similarity calculation.
-        """
-        dfc = df[df["SCAFFOLD"] == self.scaffold].copy()
-        if len(dfc.index) == 0:
-            print("No products with the same scaffold found!")
-            return None
-
-        if fp.lower() == "maccs":
-            fps = [
-                maccs_fp(Chem.MolFromSmiles(r.split(">>")[1]))
-                for r in tqdm(dfc["REACTION"].tolist(), desc="Making fingerprints...")
-            ]
-            dfc["SIMILARITY"] = [get_similarity(self.maccs_fp, fp) for fp in fps]
-        elif fp.lower() == "morgan":
-            fps = [
-                morgan_fp(Chem.MolFromSmiles(r.split(">>")[1]))
-                for r in tqdm(dfc["REACTION"].tolist(), desc="Making fingerprints...")
-            ]
-            dfc["SIMILARITY"] = [get_similarity(self.morgan_fp, fp) for fp in fps]
-        else:
-            raise KeyError(
-                f"Fingerprint choice {fp} is not supported. Select MACCS or Morgan."
-            )
-
-        df_tag = dfc.sort_values(by="SIMILARITY", ascending=False).copy()
-        df_tag["SOLVENT"].fillna("", inplace=True)
-        df_tag["CATALYST"].fillna("", inplace=True)
-        df_tag["REAGENT"].fillna("", inplace=True)
-        max_similarity = df_tag["SIMILARITY"].max()
-        df_tag = df_tag[df_tag["SIMILARITY"] > threshold].copy()
-        print(
-            f"Product found with similarity of {max_similarity:.3f}. This will be our best match."
-        )
-        df_return = df_tag.iloc[:max_return].copy()
-
-        if "rxn_str_patt_fp" in df_return.keys():
-            df_return = df_return.drop(columns=["rxn_str_patt_fp"])
-        if "rxn_dif_patt_fp" in df_return.keys():
-            df_return = df_return.drop(columns=["rxn_dif_patt_fp"])
-        if "rxn_str_morgan_fp" in df_return.keys():
-            df_return = df_return.drop(columns=["rxn_str_morgan_fp"])
-        if "rxn_dif_morgan_fp" in df_return.keys():
-            df_return = df_return.drop(columns=["rxn_dif_morgan_fp"])
-        if "TAG" in df_return.keys():
-            df_return = df_return.drop(columns=["TAG"])
-        if "TAG2" in df_return.keys():
-            df_return = df_return.drop(columns=["TAG2"])
-
-        return df_return
-
-    def get_functional_groups(self, df: pd.DataFrame = None) -> list[str]:
-        """Identifies and returns the functional groups present in the molecule.
-
-        Args:
-            df: Optional DataFrame containing functional group patterns; loads default if not provided.
-        """
-        if df is None:
-            from importlib import resources
-
-            with resources.path(
-                f"{__package__}.json", "functional_groups.json"
-            ) as path:
-                df = pd.read_json(path, orient="records", lines=True)
-
-        mol = self.mol
-        atom_indices = np.array([atom.GetIdx() for atom in mol.GetAtoms()])
-        fg = []
-        visited_atoms: list[list[int]] = []
-        for i in df.index:
-            if len(np.in1d(visited_atoms, atom_indices)) != 0:
-                if len(visited_atoms[np.in1d(visited_atoms, atom_indices)]) == len(
-                    atom_indices
-                ):
-                    break
-            sm = mol.GetSubstructMatches(Chem.MolFromSmarts(df["pattern"][i]))
-            if len(sm) == 0:
-                continue
-            else:
-                for m in sm:
-                    matched_atoms = np.array(m)
-                    if len(matched_atoms[np.in1d(matched_atoms, atom_indices)]) > 0:
-                        if len(np.in1d(visited_atoms, matched_atoms)) == 0:
-                            fg.append(df["name"][i])
-                            visited_atoms = np.unique(
-                                np.append(visited_atoms, matched_atoms)
-                            )
-                        elif len(
-                            visited_atoms[np.in1d(visited_atoms, matched_atoms)]
-                        ) != len(matched_atoms):
-                            fg.append(df["name"][i])
-                            visited_atoms = np.unique(
-                                np.append(visited_atoms, matched_atoms)
-                            )
-                        else:
-                            continue
-                    else:
-                        continue
-        return fg
-
-    def get_rings(self) -> list[str]:
-        """Identifies and returns rings in the molecule."""
-        mol = self.mol
+    def draw(self, include_mapping: bool = False, filename: Union[str, None] = None) -> pd.DataFrame:
         try:
-            rs = get_ring_systems(mol, include_spiro=True)
-        except:
-            return []
-
-        found_rings = []
-        if len(rs) > 0:
-            for k in range(len(rs)):
-                found_rings.append(sanitize_ring(atom_remover(mol, [rs[k]])))
-            return found_rings
-        else:
-            return []
+            from IPython.display import SVG, display
+            display(SVG(draw_chemical_reaction(self.reaction)))
+        except ImportError:
+            print("This function requires IPython to be installed: pip install ipython")
+            return None
