@@ -14,7 +14,7 @@ class Database:
     for creating databases, analyzing reactions, and saving results.
 
     Example:
-        >>> from rxn_insight.database import Database
+        >>> import rxn_insight as ri
         >>> import pandas as pd
         >>> # Create a sample DataFrame
         >>> data = {
@@ -27,7 +27,7 @@ class Database:
         ... }
         >>> df = pd.DataFrame(data)
         >>> # Initialize a Database object
-        >>> db = Database()
+        >>> db = ri.Database()
         >>> # Create a database from the DataFrame
         >>> reaction_df = db.create_database_from_df(
         ...     df,
@@ -49,15 +49,17 @@ class Database:
         Args:
             df: An optional pandas DataFrame containing reaction data.
 
-    """
+        """
 
         if df is None:
             self.df = pd.DataFrame({})
+            self.class_distribution = pd.DataFrame({})
+            self.name_distribution = pd.DataFrame({})
         else:
             self.df = df
+            self.class_distribution = self.get_class_distribution()
+            self.name_distribution = self.get_name_distribution()
         self.skipped_reactions = []
-        self.class_distribution = pd.DataFrame({})
-        self.name_distribution = pd.DataFrame({})
 
     def create_database_from_df(
             self,
@@ -193,7 +195,8 @@ class Database:
         Returns:
             A DataFrame summarizing the reaction class distribution.
         """
-
+        if len(self.class_distribution) == 0:
+            self.class_distribution = calculate_class_distribution(self.df)
         return self.class_distribution
 
     def get_name_distribution(self):
@@ -204,6 +207,8 @@ class Database:
         Returns:
             A DataFrame summarizing the reaction name distribution.
         """
+        if len(self.name_distribution) == 0:
+            self.name_distribution = calculate_name_distribution(self.df)
 
         return self.name_distribution
 
@@ -232,12 +237,12 @@ def analyze_reactions(df: pd.DataFrame) -> Tuple[pd.DataFrame, List[str]]:
 
     rxn_mapper = RXNMapper()
     with resources.path(
-            f"{__package__}.json", "functional_groups.json"
+            f"{__package__}.data", "functional_groups.json"
     ) as path:
         fg_db = pd.read_json(path, orient="records", lines=True)
 
     with resources.path(
-            f"{__package__}.json", "smirks.json"
+            f"{__package__}.data", "smirks.json"
     ) as path:
         smirks = pd.read_json(path, orient="records", lines=True)
 

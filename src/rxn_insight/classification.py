@@ -95,7 +95,7 @@ class ReactionClassifier:
         except ValueError:
             raise ValueError(
                 "This reaction cannot be parsed, because no transformation is detected. "
-                "Possibly, this is a resolution but RxnInsights cannot yet handle enantiomers."
+                "Possibly, this is a resolution but Rxn-INSIGHT cannot yet handle enantiomers."
             )
         self.be_matrix_reactants = self.get_be_matrix(self.mol_reactant)
         self.be_matrix_products = self.get_be_matrix(self.mol_product)

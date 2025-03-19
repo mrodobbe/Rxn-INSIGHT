@@ -31,14 +31,14 @@ First, let’s see how to visualize the molecules in a reaction:
 
 .. code:: python
 
-   from rxn_insight.reaction import Reaction
+   import rxn_insight as ri
    from rdkit import Chem
    from rdkit.Chem import Draw
    import matplotlib.pyplot as plt
 
    # Define a reaction
    reaction_smiles = "OB(O)c1ccccc1.Brc1ccccc1>>c1ccc(-c2ccccc2)cc1"
-   rxn = Reaction(reaction_smiles)
+   rxn = ri.Reaction(reaction_smiles)
 
    # Extract reactants and product
    reactants_smiles = rxn.reactants.split(".")
@@ -74,12 +74,12 @@ Highlight the reaction center to focus on the transforming parts:
 
 .. code:: python
 
-   from rxn_insight.reaction import Reaction
+   import rxn_insight as ri
    from rxn_insight.utils import draw_chemical_reaction
 
    # Define a reaction
    reaction_smiles = "OB(O)c1ccccc1.Brc1ccccc1>>c1ccc(-c2ccccc2)cc1"
-   rxn = Reaction(reaction_smiles)
+   rxn = ri.Reaction(reaction_smiles)
 
    # Get the reaction info to identify the mapped reaction
    reaction_info = rxn.get_reaction_info()
@@ -106,10 +106,10 @@ Create a pie chart of reaction classes in your database:
    import pandas as pd
    import matplotlib.pyplot as plt
    import seaborn as sns
-   from rxn_insight.database import Database
+   import rxn_insight as ri
 
    # Load or create a database
-   db = Database()
+   db = ri.Database()
    try:
        # Try to load an existing database
        df = pd.read_parquet("my_rxn_database.gzip")
@@ -144,7 +144,6 @@ Create a heatmap of similarity between various reactions:
    import pandas as pd
    import matplotlib.pyplot as plt
    import seaborn as sns
-   from rxn_insight.reaction import Reaction
    from rxn_insight.utils import get_fp, get_similarity
 
    # Define several reactions
@@ -195,11 +194,11 @@ Create bar charts of recommended solvents, catalysts, and reagents:
    import pandas as pd
    import matplotlib.pyplot as plt
    import seaborn as sns
-   from rxn_insight.reaction import Reaction
+   import rxn_insight as ri
 
    # Define a reaction
    reaction_smiles = "OB(O)c1ccccc1.Brc1ccccc1>>c1ccc(-c2ccccc2)cc1"
-   rxn = Reaction(reaction_smiles)
+   rxn = ri.Reaction(reaction_smiles)
 
    # Load a reaction database
    df_rxns = pd.read_parquet("uspto_rxn_insight.gzip")
@@ -250,14 +249,14 @@ Create a graph showing relationships between reactions:
    import pandas as pd
    import matplotlib.pyplot as plt
    import networkx as nx
-   from rxn_insight.reaction import Reaction, Molecule
+   import rxn_insight as ri
 
    # Install networkx if you don't have it
    # pip install networkx
 
    # Define a target product
    target_smiles = "c1ccc(-c2ccccc2)cc1"  # Biphenyl
-   target = Molecule(target_smiles)
+   target = ri.Molecule(target_smiles)
 
    # Load a reaction database
    df_rxns = pd.read_parquet("uspto_rxn_insight.gzip")
@@ -335,13 +334,13 @@ For interactive visualizations (especially useful in Jupyter notebooks):
    import pandas as pd
    import plotly.express as px
    import plotly.graph_objects as go
-   from rxn_insight.database import Database
+   import rxn_insight as ri
 
    # Install plotly if you don't have it
    # pip install plotly
 
    # Load or create a database
-   db = Database()
+   db = ri.Database()
    df = pd.read_parquet("uspto_rxn_insight.gzip")
    db.df = df
 
@@ -381,11 +380,11 @@ Create reusable functions for common visualizations:
    import seaborn as sns
    from rdkit import Chem
    from rdkit.Chem import Draw
-   from rxn_insight.reaction import Reaction
+   import rxn_insight as ri
 
    def visualize_reaction(reaction_smiles, title=None, save_path=None):
        """Create a visualization of a reaction with reactants, arrow, and products."""
-       rxn = Reaction(reaction_smiles)
+       rxn = ri.Reaction(reaction_smiles)
        
        # Extract reactants and product
        reactants_smiles = rxn.reactants.split(".")
@@ -453,15 +452,15 @@ Create visualizations to highlight functional groups and ring systems:
 
 .. code:: python
 
-   from rxn_insight.reaction import Reaction, Molecule
    from rdkit import Chem
    from rdkit.Chem import Draw, AllChem
+   import rxn_insight as ri
    import matplotlib.pyplot as plt
 
    def highlight_functional_groups(mol_smiles, title=None, save_path=None):
        """Highlight functional groups in a molecule."""
        # Create a Molecule object to get functional groups
-       mol_obj = Molecule(mol_smiles)
+       mol_obj = ri.Molecule(mol_smiles)
        fg_list = mol_obj.get_functional_groups()
        
        # Create RDKit molecule
@@ -543,7 +542,7 @@ Create visualizations to highlight functional groups and ring systems:
    def highlight_rings(mol_smiles, title=None, save_path=None):
        """Highlight ring systems in a molecule."""
        # Create a Molecule object to get rings
-       mol_obj = Molecule(mol_smiles)
+       mol_obj = ri.Molecule(mol_smiles)
        ring_list = mol_obj.get_rings()
        
        # Create RDKit molecule
@@ -626,14 +625,14 @@ multiple visualizations:
    import matplotlib.pyplot as plt
    from matplotlib.gridspec import GridSpec
    import seaborn as sns
-   from rxn_insight.reaction import Reaction
+   import rxn_insight as ri
    from rdkit import Chem
    from rdkit.Chem import Draw
 
    def create_reaction_dashboard(reaction_smiles, database_path=None, save_path=None):
        """Create a comprehensive dashboard for a reaction."""
        # Initialize the reaction
-       rxn = Reaction(reaction_smiles)
+       rxn = ri.Reaction(reaction_smiles)
        info = rxn.get_reaction_info()
        
        # Set up the figure
