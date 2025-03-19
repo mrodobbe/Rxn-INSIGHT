@@ -28,13 +28,13 @@ Analyzing a simple Suzuki coupling reaction:
 
 .. code:: python
 
-   from rxn_insight.reaction import Reaction
+   import rxn_insight as ri
 
    # Define a Suzuki coupling reaction in SMILES format
    reaction_smiles = "OB(O)c1ccccc1.Brc1ccccc1>>c1ccc(-c2ccccc2)cc1"
 
    # Create a Reaction object
-   rxn = Reaction(reaction_smiles)
+   rxn = ri.Reaction(reaction_smiles)
 
    # Get reaction information
    info = rxn.get_reaction_info()
@@ -62,7 +62,7 @@ dataset processed for Rxn-INSIGHT can be downloaded from
 .. code:: python
 
    import pandas as pd
-   from rxn_insight.reaction import Reaction
+   import rxn_insight as ri
 
    # Load the USPTO dataset
    # Download it first from https://zenodo.org/records/10171745
@@ -70,7 +70,7 @@ dataset processed for Rxn-INSIGHT can be downloaded from
 
    # Define our reaction
    reaction_smiles = "OB(O)c1ccccc1.Brc1ccccc1>>c1ccc(-c2ccccc2)cc1"
-   rxn = Reaction(reaction_smiles)
+   rxn = ri.Reaction(reaction_smiles)
 
    # Find similar reactions with at least 0.4 similarity
    similar_reactions = rxn.find_neighbors(df_uspto, threshold=0.4)
@@ -114,7 +114,7 @@ If you have your own reaction data, you can create a custom database:
 
 .. code:: python
 
-   from rxn_insight.database import Database
+   import rxn_insight as ri
    import pandas as pd
 
    # Create a simple DataFrame with your reactions
@@ -133,7 +133,7 @@ If you have your own reaction data, you can create a custom database:
    df = pd.DataFrame(data)
 
    # Create the database
-   db = Database()
+   db = ri.Database()
    rxn_db = db.create_database_from_df(
        df,
        reaction_column="reaction",

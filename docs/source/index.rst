@@ -35,6 +35,8 @@ Please cite the Rxn-INSIGHT `paper <https://doi.org/10.1186/s13321-024-00834-z>`
 
    common-use-cases
    visualization-guide
+   ord-documentation
+   molecule-module
 
 .. toctree::
    :maxdepth: 2
