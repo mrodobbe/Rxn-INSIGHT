@@ -448,7 +448,7 @@ def atom_remover(mol: Mol, matches: list[list[int]]) -> Mol:
 
 
 def draw_chemical_reaction(
-    smiles: str, highlightByReactant: bool = False, font_scale: float = 1.5
+    smiles: str, highlight_by_reactant: bool = False, font_scale: float = 1.5
 ) -> str:
     rxn = rdChemReactions.ReactionFromSmarts(smiles, useSmiles=True)
     trxn = rdChemReactions.ChemicalReaction(rxn)
@@ -459,14 +459,14 @@ def draw_chemical_reaction(
     #         moveAtomMapsToNotes(m)
     d2d = rdMolDraw2D.MolDraw2DSVG(800, 300)
     d2d.drawOptions().annotationFontScale = font_scale
-    d2d.DrawReaction(trxn, highlightByReactant=highlightByReactant)
+    d2d.DrawReaction(trxn, highlightByReactant=highlight_by_reactant)
 
     d2d.FinishDrawing()
     drawing_text: str = d2d.GetDrawingText()
     return drawing_text
 
 
-def moveAtomMapsToNotes(m: Mol) -> None:
+def move_atom_maps_to_notes(m: Mol) -> None:
     for at in m.GetAtoms():
         if at.GetAtomMapNum():
             at.SetProp("atomNote", str(at.GetAtomMapNum()))
