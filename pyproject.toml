@@ -20,6 +20,7 @@ dependencies = [
     "ipykernel",
     "sphinx-rtd-theme",
     "sphinxcontrib-bibtex",
+    "sphinxcontrib-googleanalytics",
 ]
 authors = [
     {name = "Maarten R. Dobbelaere", email = "mrodobbe.dobbelaere@ugent.be"}

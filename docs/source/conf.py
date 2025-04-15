@@ -27,12 +27,13 @@ extensions = [
     "sphinx.ext.doctest",
     "sphinx_rtd_theme",
     "sphinxcontrib.bibtex",
+    "sphinxcontrib.googleanalytics",
 ]
 
 bibtex_bibfiles = ['refs.bib']
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
-
+googleanalytics_id = 'G-LQN104JT30'
 
 
 # -- Options for HTML output -------------------------------------------------
