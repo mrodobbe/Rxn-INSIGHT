@@ -13,6 +13,11 @@ for novel reactions with high accuracy and efficiency. The tool replicates the r
 achieving over 90% accuracy in classification and 95% in naming,
 while providing suggestions for reaction conditions in under a second.
 
+.. note::
+    Rxn-INSIGHT is under continuous development, and we’d love to hear from you!
+    Let us know how you're using Rxn-INSIGHT, what features you find helpful, or what improvements you’d like to see.
+    Reach out anytime by e-mail: mrodobbe.Dobbelaere (at) UGent.be (replace `(at)` with `@`).
+
 Rxn-INSIGHT can be installed from PyPI using pip (on python 3.10 or 3.11):
 
 ``pip install rxn_insight``
