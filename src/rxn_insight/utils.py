@@ -23,10 +23,55 @@ from rdkit.Chem.Scaffolds.MurckoScaffold import GetScaffoldForMol
 from rxnmapper import RXNMapper
 from scipy.spatial.distance import braycurtis, canberra, chebyshev, \
     cityblock, correlation, cosine, euclidean, minkowski, \
-    dice, hamming, jaccard, kulczynski1, rogerstanimoto, \
-    russellrao, sokalmichener, sokalsneath, yule
+    dice, hamming, jaccard, rogerstanimoto, \
+    russellrao, sokalsneath, yule
 
 pd.options.mode.chained_assignment = None
+
+
+def kulczynski1(u: npt.NDArray[Any], v: npt.NDArray[Any]) -> float:
+    """Kulczynski 1 dissimilarity between two boolean 1-D arrays.
+
+    Reimplements ``scipy.spatial.distance.kulczynski1``, which was deprecated in
+    SciPy 1.8 and removed in SciPy 1.11, so the package works with modern SciPy.
+    Matches SciPy's definition ``ntt / (ntf + nft)``.
+
+    Args:
+        u: First boolean vector.
+        v: Second boolean vector.
+
+    Returns:
+        float: Kulczynski 1 dissimilarity.
+    """
+    u = np.asarray(u, dtype=bool)
+    v = np.asarray(v, dtype=bool)
+    ntt = float(np.sum(u & v))
+    ntf = float(np.sum(u & ~v))
+    nft = float(np.sum(~u & v))
+    return ntt / (ntf + nft)
+
+
+def sokalmichener(u: npt.NDArray[Any], v: npt.NDArray[Any]) -> float:
+    """Sokal-Michener dissimilarity between two boolean 1-D arrays.
+
+    Reimplements ``scipy.spatial.distance.sokalmichener``, removed in SciPy 1.18,
+    so the package works with modern SciPy. Matches SciPy's definition
+    ``2 (ntf + nft) / (ntt + nff + 2 (ntf + nft))``.
+
+    Args:
+        u: First boolean vector.
+        v: Second boolean vector.
+
+    Returns:
+        float: Sokal-Michener dissimilarity.
+    """
+    u = np.asarray(u, dtype=bool)
+    v = np.asarray(v, dtype=bool)
+    ntt = float(np.sum(u & v))
+    nff = float(np.sum(~u & ~v))
+    ntf = float(np.sum(u & ~v))
+    nft = float(np.sum(~u & v))
+    return (2.0 * (ntf + nft)) / (ntt + nff + 2.0 * (ntf + nft))
 
 
 def remove_atom_mapping(rxn: str, smarts: bool = False) -> str:
