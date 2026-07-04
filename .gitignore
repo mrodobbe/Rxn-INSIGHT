@@ -246,3 +246,14 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/python,jupyternotebooks,macos,windows
+# --- Rxn-INSIGHT private datasets (bring-your-own via RXN_INSIGHT_DATA) ---
+src/rxn_insight/data/structured_mapping.json
+src/rxn_insight/data/class_names.json
+src/rxn_insight/data/final_ordered_smirks_db.json
+src/rxn_insight/data/chem21.csv
+src/rxn_insight/data/pricelist_10g.csv
+src/rxn_insight/data/gsk_ssg.csv
+src/rxn_insight/data/hsp_coeffs.csv
+src/rxn_insight/data/ssg_coeffs.csv
+src/rxn_insight/data/solvent_temperatures.csv
+src/rxn_insight/data/flow_ef_dict.pkl

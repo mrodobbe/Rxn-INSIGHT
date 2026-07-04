@@ -10,17 +10,16 @@ license = {file = "LICENSE"}
 description = "RXN insight package"
 dependencies = [
     "rdkit",
-    "rxnmapper>=0.3.0",
+    "rxnmapper>=0.4.3",
     "rdchiral>=1.1.0",
     "pandas",
     "pyarrow>=15.0.2",
-    "numpy<=1.26.4",
+    "numpy",
+    "scipy",
+    "joblib",
     "tqdm",
     "openpyxl",
     "ipykernel",
-    "sphinx-rtd-theme",
-    "sphinxcontrib-bibtex",
-    "sphinxcontrib-googleanalytics",
 ]
 authors = [
     {name = "Maarten R. Dobbelaere", email = "mrodobbe.dobbelaere@ugent.be"}
@@ -36,6 +35,9 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 dynamic = ["version"]
 
@@ -45,6 +47,9 @@ tracker = "https://github.com/mrodobbe/rxn-insight/issues"
 documentation = "https://rxn-insight.readthedocs.io"
 
 [project.optional-dependencies]
+ord = [
+    "ord-schema",
+]
 test = [
     "mypy",
     "hypothesis",
@@ -60,6 +65,8 @@ doc = [
     "sphinx-copybutton",
     "sphinx-book-theme",
     "sphinx-rtd-theme",
+    "sphinxcontrib-bibtex",
+    "sphinxcontrib-googleanalytics",
 ]
 
 [tool.hatch.version]

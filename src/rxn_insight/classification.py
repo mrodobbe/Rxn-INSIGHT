@@ -1,5 +1,7 @@
 """Reaction classification module"""
 
+from __future__ import annotations
+
 import itertools
 from typing import Any, Optional, Union
 
@@ -10,11 +12,7 @@ from rdchiral.template_extractor import get_strict_smarts_for_atom
 from rdkit import Chem
 from rdkit.Chem import AllChem
 from rdkit.Chem.rdchem import Mol
-
-try:
-    from rxnmapper import RXNMapper
-except ImportError:
-    pass
+import copy
 
 from rxn_insight.utils import (
     atom_remover,
@@ -36,7 +34,8 @@ class ReactionClassifier:
         reaction: str,
         rxn_mapper: Optional[RXNMapper] = None,
         keep_mapping: bool = False,
-        search_template: bool = True
+        search_template: bool = True,
+        include_hydrogens: bool = False,
     ):
         """Initializes the ReactionClassifier with the specified reaction and options.
 
@@ -46,10 +45,20 @@ class ReactionClassifier:
             keep_mapping (bool): If True, keeps existing atom mappings; otherwise, generates new mappings.
         """
         # Check reaction SMILES is valid
+        self.include_hydrogens = include_hydrogens
         try:
             AllChem.ReactionFromSmarts(reaction)
         except ValueError as e:
             raise ValueError(f"Invalid reaction SMILES string. Error msg: {e}")
+
+        # Normalize 3-part format (reactants>agents>products) to 2-part
+        # so that agents are not fed into RXNMapper or atom mapping logic.
+        self._middle_agents: list[str] = []
+        if ">>" not in reaction:
+            parts = reaction.split(">")
+            if len(parts) == 3:
+                self._middle_agents = [a for a in parts[1].split(".") if a]
+                reaction = f"{parts[0]}>>{parts[2]}"
 
         if keep_mapping:
             self.mapped_reaction = reaction
@@ -64,6 +73,7 @@ class ReactionClassifier:
         self.sanitized_mapped_reaction, self.sanitized_reaction, self.extra_agents = (
             sanitize_mapped_reaction(self.mapped_reaction)
         )
+        self.extra_agents.extend(self._middle_agents)
         if search_template:
             self.template = get_reaction_template(
                 self.sanitized_mapped_reaction, radius_reactants=1, radius_products=0
@@ -81,6 +91,13 @@ class ReactionClassifier:
         )
         self.mol_reactant = Chem.MolFromSmiles(self.reactants)
         self.mol_product = Chem.MolFromSmiles(self.products)
+
+        if self.include_hydrogens:
+            self.mapped_reaction, self.mol_reactant, self.mol_product = self.add_and_map_hydrogens()
+
+        self.mapped_reactant = copy.deepcopy(self.mol_reactant)
+        self.mapped_product = copy.deepcopy(self.mol_product)
+
         self.n_atoms_reactants = self.mol_reactant.GetNumAtoms()
         self.n_atoms_products = self.mol_product.GetNumAtoms()
         self.num_reactants = len(self.sanitized_reaction.split(">>")[0].split("."))
@@ -124,13 +141,6 @@ class ReactionClassifier:
         self.transformation_determinant = np.linalg.det(
             self.sanitized_transformation_matrix
         )
-        # self.reaction_class = self.classify_reaction()
-        # self.functional_groups_reactants = self.get_functional_group_smarts(self.mol_reactant,
-        #                                                                     self.be_matrix_reactants,
-        #                                                                     self.reactant_map_dict)
-        # self.functional_groups_products = self.get_functional_group_smarts(self.mol_product,
-        #                                                                    self.be_matrix_products,
-        #                                                                    self.product_map_dict)
 
     def get_template_smiles(self) -> str | None:
         """Generates a reaction SMILES from the reaction SMARTS template.
@@ -246,7 +256,7 @@ class ReactionClassifier:
                         atom_maps.append(mapping)
                         atom_indices.append(map_dict[mapping])
             vals = np.array(vals_new)
-            if len(visited_atoms[np.in1d(visited_atoms, vals)]) > 0:
+            if len(visited_atoms[np.isin(visited_atoms, vals)]) > 0:
                 continue
             elif len(vals) == 0:
                 continue
@@ -315,8 +325,8 @@ class ReactionClassifier:
         fg = []
         visited_atoms: list[list[int]] = []
         for i in df.index:
-            if len(np.in1d(visited_atoms, atom_indices)) != 0:
-                if len(visited_atoms[np.in1d(visited_atoms, atom_indices)]) == len(
+            if len(np.isin(visited_atoms, atom_indices)) != 0:
+                if len(visited_atoms[np.isin(visited_atoms, atom_indices)]) == len(
                     atom_indices
                 ):
                     break
@@ -326,14 +336,14 @@ class ReactionClassifier:
             else:
                 for m in sm:
                     matched_atoms = np.array(m)
-                    if len(matched_atoms[np.in1d(matched_atoms, atom_indices)]) > 0:
-                        if len(np.in1d(visited_atoms, matched_atoms)) == 0:
+                    if len(matched_atoms[np.isin(matched_atoms, atom_indices)]) > 0:
+                        if len(np.isin(visited_atoms, matched_atoms)) == 0:
                             fg.append(df["name"][i])
                             visited_atoms = np.unique(
                                 np.append(visited_atoms, matched_atoms)
                             )
                         elif len(
-                            visited_atoms[np.in1d(visited_atoms, matched_atoms)]
+                            visited_atoms[np.isin(visited_atoms, matched_atoms)]
                         ) != len(matched_atoms):
                             fg.append(df["name"][i])
                             visited_atoms = np.unique(
@@ -373,7 +383,7 @@ class ReactionClassifier:
                 )
                 for r in rs:
                     r = np.array(r)
-                    if np.in1d(r, atom_indices).sum() > 0:
+                    if np.isin(r, atom_indices).sum() > 0:
                         involved_rings.append(r)
 
             if len(involved_rings) == 0:
@@ -407,7 +417,7 @@ class ReactionClassifier:
             return []
         negative_values = np.where(d < 0)[0]
         metals = np.array([3, 5, 11, 12, 29, 30, 34, 47, 50])
-        metal_indices = np.where(np.in1d(self.reaction_center_atoms, metals))[0]
+        metal_indices = np.where(np.isin(self.reaction_center_atoms, metals))[0]
         negative_values = np.unique(
             np.array(list(negative_values) + list(metal_indices))
         )
@@ -541,6 +551,93 @@ class ReactionClassifier:
         reaction_center["CLASS"] = self.classify_reaction()
         reaction_center["TAG"] = tag_reaction(reaction_center)
         return reaction_center
+
+    def add_and_map_hydrogens(
+        self,
+    ) -> tuple[str, Mol, Mol]:
+        """
+        Takes a reaction with mapped heavy atoms and adds explicit hydrogens with proper mapping.
+
+        Returns:
+            tuple: (full_reaction_smiles, reactant_mols, product_mols)
+                   where mols have explicit H's with mappings
+        """
+
+        reactants_str, products_str = self.mapped_reaction.split(">>")
+
+        reactant_mols = [Chem.AddHs(Chem.MolFromSmiles(smi)) for smi in reactants_str.split(".")]
+        product_mols = [Chem.AddHs(Chem.MolFromSmiles(smi)) for smi in products_str.split(".")]
+
+        max_map_num = 0
+        for mol in reactant_mols + product_mols:
+            for atom in mol.GetAtoms():
+                if atom.GetAtomMapNum() > max_map_num:
+                    max_map_num = atom.GetAtomMapNum()
+
+        next_h_map = max_map_num + 1
+
+        reactant_h_map = {}
+        product_h_map = {}
+
+        for mol in reactant_mols:
+            for atom in mol.GetAtoms():
+                if atom.GetAtomicNum() == 1 and atom.GetAtomMapNum() == 0:  # Unmapped H
+                    parent = atom.GetNeighbors()[0]
+                    parent_map = parent.GetAtomMapNum()
+                    if parent_map > 0:  # Parent is mapped
+                        if parent_map not in reactant_h_map:
+                            reactant_h_map[parent_map] = []
+                        reactant_h_map[parent_map].append((mol, atom.GetIdx()))
+
+        for mol in product_mols:
+            for atom in mol.GetAtoms():
+                if atom.GetAtomicNum() == 1 and atom.GetAtomMapNum() == 0:  # Unmapped H
+                    parent = atom.GetNeighbors()[0]
+                    parent_map = parent.GetAtomMapNum()
+                    if parent_map > 0:  # Parent is mapped
+                        if parent_map not in product_h_map:
+                            product_h_map[parent_map] = []
+                        product_h_map[parent_map].append((mol, atom.GetIdx()))
+
+        for parent_map in set(reactant_h_map.keys()) | set(product_h_map.keys()):
+            r_hydrogens = reactant_h_map.get(parent_map, [])
+            p_hydrogens = product_h_map.get(parent_map, [])
+
+            n_r_h = len(r_hydrogens)
+            n_p_h = len(p_hydrogens)
+            n_common = min(n_r_h, n_p_h)
+
+            for i in range(n_common):
+                h_map_num = next_h_map
+                next_h_map += 1
+
+                r_mol, r_idx = r_hydrogens[i]
+                r_mol.GetAtomWithIdx(r_idx).SetAtomMapNum(h_map_num)
+
+                p_mol, p_idx = p_hydrogens[i]
+                p_mol.GetAtomWithIdx(p_idx).SetAtomMapNum(h_map_num)
+
+            for i in range(n_common, n_r_h):
+                h_map_num = next_h_map
+                next_h_map += 1
+                r_mol, r_idx = r_hydrogens[i]
+                r_mol.GetAtomWithIdx(r_idx).SetAtomMapNum(h_map_num)
+
+            for i in range(n_common, n_p_h):
+                h_map_num = next_h_map
+                next_h_map += 1
+                p_mol, p_idx = p_hydrogens[i]
+                p_mol.GetAtomWithIdx(p_idx).SetAtomMapNum(h_map_num)
+
+        mapped_reactants = ".".join([Chem.MolToSmiles(mol) for mol in reactant_mols])
+        params = Chem.SmilesParserParams()
+        params.removeHs = False
+        reactant_mols = Chem.MolFromSmiles(mapped_reactants, params)
+        mapped_products = ".".join([Chem.MolToSmiles(mol) for mol in product_mols])
+        product_mols = Chem.MolFromSmiles(mapped_products, params)
+        full_reaction_smiles = f"{mapped_reactants}>>{mapped_products}"
+
+        return full_reaction_smiles, reactant_mols, product_mols
 
     def get_atom_mapping_indices(
         self,
@@ -804,7 +901,7 @@ class ReactionClassifier:
                         if (
                             len(
                                 a[
-                                    np.in1d(
+                                    np.isin(
                                         a, self.mol_product.GetSubstructMatches(group)
                                     )
                                 ]
@@ -1038,20 +1135,20 @@ class ReactionClassifier:
             all_reactant_mappings = np.array(list(self.reactant_map_dict.keys()))
             all_product_mappings = np.array(list(self.product_map_dict.keys()))
             carbon_balance_reactants = len(
-                all_reactant_mappings[np.in1d(all_reactant_mappings, carbons)]
+                all_reactant_mappings[np.isin(all_reactant_mappings, carbons)]
             ) == len(carbons)
             carbon_balance_products = len(
-                all_product_mappings[np.in1d(all_product_mappings, carbons)]
+                all_product_mappings[np.isin(all_product_mappings, carbons)]
             ) == len(carbons)
             if carbon_balance_products and carbon_balance_reactants:
                 return True
             elif len(
-                all_reactant_mappings[np.in1d(all_reactant_mappings, oxygens)]
-            ) > len(all_product_mappings[np.in1d(all_product_mappings, oxygens)]):
+                all_reactant_mappings[np.isin(all_reactant_mappings, oxygens)]
+            ) > len(all_product_mappings[np.isin(all_product_mappings, oxygens)]):
                 return True
             elif len(
-                all_reactant_mappings[np.in1d(all_reactant_mappings, sulfurs)]
-            ) > len(all_product_mappings[np.in1d(all_product_mappings, sulfurs)]):
+                all_reactant_mappings[np.isin(all_reactant_mappings, sulfurs)]
+            ) > len(all_product_mappings[np.isin(all_product_mappings, sulfurs)]):
                 return True
             else:
                 return False
@@ -1142,10 +1239,10 @@ class ReactionClassifier:
             all_reactant_mappings = np.array(list(self.reactant_map_dict.keys()))
             all_product_mappings = np.array(list(self.product_map_dict.keys()))
             carbon_balance_reactants = len(
-                all_reactant_mappings[np.in1d(all_reactant_mappings, carbons)]
+                all_reactant_mappings[np.isin(all_reactant_mappings, carbons)]
             ) == len(carbons)
             carbon_balance_products = len(
-                all_product_mappings[np.in1d(all_product_mappings, carbons)]
+                all_product_mappings[np.isin(all_product_mappings, carbons)]
             ) == len(carbons)
             if carbon_balance_reactants and carbon_balance_products:
                 return True
@@ -1189,7 +1286,8 @@ class ReactionClassifier:
             carbonyl_c = -1
             acyl = False
             for idx in self.reaction_center_idx:
-                mp = Chem.MolFromSmiles(self.products)
+                # mp = Chem.MolFromSmiles(self.products)
+                mp = copy.deepcopy(self.mapped_product)
                 atom = mp.GetAtomWithIdx(idx)
                 if atom.GetAtomicNum() == 6:
                     for nb in atom.GetNeighbors():
@@ -1234,7 +1332,7 @@ class ReactionClassifier:
                     rcid = np.array(self.reaction_center_idx)
                     for tup in carbamate:
                         cid = np.array(list(tup))
-                        carbamate_in_rc = rcid[np.in1d(rcid, cid)]
+                        carbamate_in_rc = rcid[np.isin(rcid, cid)]
                         if len(carbamate_in_rc) > 0:
                             return False
                         else:
@@ -1246,7 +1344,7 @@ class ReactionClassifier:
                     )
                     for tup in ester_reactant:
                         cid = np.array(list(tup))
-                        carboxyl_in_rcr = rcid[np.in1d(rcid, cid)]
+                        carboxyl_in_rcr = rcid[np.isin(rcid, cid)]
                         ester_products = mp.GetSubstructMatches(
                             Chem.MolFromSmarts(
                                 "[OX2;+0]-[C;H0;D3;+0](=[O;H0;D1;+0])-[#6;!H3]"
@@ -1254,7 +1352,7 @@ class ReactionClassifier:
                         )
                         for tup in ester_products:
                             cid = np.array(list(tup))
-                            carboxyl_in_rcp = rcid[np.in1d(rcid, cid)]
+                            carboxyl_in_rcp = rcid[np.isin(rcid, cid)]
                             if len(carboxyl_in_rcr) > 0 and len(carboxyl_in_rcp) > 0:
                                 if (
                                     len(
@@ -1377,7 +1475,7 @@ class ReactionClassifier:
                     no_bonds = np.where(
                         self.be_matrix_reactants[maps_1, heteroatom] == 0
                     )[0]
-                    carbon_bonds = maps_1[np.in1d(maps_1, carbons)]
+                    carbon_bonds = maps_1[np.isin(maps_1, carbons)]
                     # rcid = np.array(self.reaction_center_idx) <--- seems to be unused
                     carbonyls_r: list[int] = []
                     carbonyls_p: list[int] = []
@@ -1437,7 +1535,7 @@ class ReactionClassifier:
                     no_bonds = np.where(self.be_matrix_reactants[maps_1, carbon] == 0)[
                         0
                     ]
-                    if len(maps_1[np.in1d(maps_1, carbons)]) > 0 and len(no_bonds) > 0:
+                    if len(maps_1[np.isin(maps_1, carbons)]) > 0 and len(no_bonds) > 0:
                         return True
                     else:
                         continue
@@ -1462,7 +1560,7 @@ class ReactionClassifier:
         involved_types = self.atoms_diagonal[a]
         d = m.diagonal()
         halogens = np.array([9, 17, 35, 53])
-        x_indices = np.where(np.in1d(self.reaction_center_atoms, halogens))[0]
+        x_indices = np.where(np.isin(self.reaction_center_atoms, halogens))[0]
         if len(np.where(d < 0)[0]) > 0:
             # Atoms that are not found in products
             count_x_additions = 0
@@ -1503,7 +1601,7 @@ class ReactionClassifier:
             return False
         elif not d.any():
             metals = np.array([3, 5, 11, 12, 29, 30, 34, 47, 50])
-            metal_indices = np.where(np.in1d(self.reaction_center_atoms, metals))[0]
+            metal_indices = np.where(np.isin(self.reaction_center_atoms, metals))[0]
             if len(metal_indices) > 0:
                 for metal_idx in metal_indices:
                     if len(np.where(m[:, metal_idx] < 0)[0]) == 0:
@@ -1530,7 +1628,7 @@ class ReactionClassifier:
                     no_bonds = np.where(self.be_matrix_reactants[maps_1, carbon] == 0)[
                         0
                     ]
-                    if len(maps_1[np.in1d(maps_1, carbons)]) > 0 and len(no_bonds) > 0:
+                    if len(maps_1[np.isin(maps_1, carbons)]) > 0 and len(no_bonds) > 0:
                         continue
                     else:
                         return True
@@ -1589,11 +1687,11 @@ class ReactionClassifier:
                     no_bonds = len(
                         np.where(self.be_matrix_products[maps_1, heteroatom] == 0)[0]
                     )
-                    if len(maps_1[np.in1d(maps_1, carbons)]) > 0 and no_bonds > 0:
+                    if len(maps_1[np.isin(maps_1, carbons)]) > 0 and no_bonds > 0:
                         in_products = len(
                             np.where(
                                 self.be_matrix_products[
-                                    maps_1[np.in1d(maps_1, carbons)]
+                                    maps_1[np.isin(maps_1, carbons)]
                                 ]
                                 != 0
                             )[0]
@@ -1660,7 +1758,7 @@ class ReactionClassifier:
                 elif heteroatom in carbons:  # Indicates an alkyne
                     if len(silicons) == 0:
                         continue
-                    elif len(maps_1[np.in1d(maps_1, silicons)]) > 0:
+                    elif len(maps_1[np.isin(maps_1, silicons)]) > 0:
                         return True
                     else:
                         continue
@@ -1668,7 +1766,7 @@ class ReactionClassifier:
                     no_bonds = len(
                         np.where(self.be_matrix_reactants[maps_1, heteroatom] == 0)[0]
                     )
-                    if len(maps_1[np.in1d(maps_1, carbons)]) > 0 and no_bonds > 0:
+                    if len(maps_1[np.isin(maps_1, carbons)]) > 0 and no_bonds > 0:
                         return True
                     else:
                         continue
@@ -1680,109 +1778,105 @@ class ReactionClassifier:
         Returns:
             str: The classification of the reaction, such as 'Reduction', 'Oxidation', etc.
         """
+        include_hydrogens = False
+        if self.include_hydrogens:
+            include_hydrogens = True
+            self.__init__(self.reaction, include_hydrogens=False)
+
         if self.is_aromatic_heterocycle():
-            return "Aromatic Heterocycle Formation"
+            rxn_class = "Aromatic Heterocycle Formation"
         elif self.is_acylation():
-            return "Acylation"
+            rxn_class = "Acylation"
         elif self.is_fgi():
-            return "Functional Group Interconversion"
+            rxn_class = "Functional Group Interconversion"
         elif self.is_reduction():
-            return "Reduction"
+            rxn_class = "Reduction"
         elif self.is_oxidation():
-            return "Oxidation"
+            rxn_class = "Oxidation"
         elif self.is_fga():
-            return "Functional Group Addition"
+            rxn_class = "Functional Group Addition"
         elif self.is_heteroatom_alkylation():
-            return "Heteroatom Alkylation and Arylation"
+            rxn_class = "Heteroatom Alkylation and Arylation"
         elif self.is_cc_coupling():
-            return "C-C Coupling"
+            rxn_class = "C-C Coupling"
         elif self.is_deprotection():
-            return "Deprotection"
+            rxn_class = "Deprotection"
         elif self.is_protection():
-            return "Protection"
+            rxn_class = "Protection"
         else:
-            return "Miscellaneous"
+            rxn_class = "Miscellaneous"
 
-    def name_reaction(self, smirks_db: pd.DataFrame) -> str:
-        """Determines the name of the reaction from a database based on SMIRKS transformations.
+        if include_hydrogens:
+            self.__init__(self.reaction, include_hydrogens=True)
 
-        Args:
-            smirks_db (pd.DataFrame): DataFrame containing SMIRKS patterns and corresponding reaction names.
+        return rxn_class
 
-        Returns:
-            str: The name of the reaction, or 'OtherReaction' if no specific name can be determined.
+    def _get_reaction_center(self, preserve_stereo: bool = True) -> set:
+        """Return the set of reaction-center atom map numbers.
+
+        Starts from the T-matrix (atoms whose bonds change) and expands to
+        include:
+
+        * Atoms whose **hydrogen count** changes between reactant and product
+          (e.g. ``n`` → ``nH`` in a lactam formation).  The T-matrix only
+          captures bond-order changes, so a nitrogen that gains an H without
+          any bond-order change would otherwise be missed.
+        * Atoms whose **stereochemistry** changes (CIP code comparison, with
+          chiral-tag fallback for newly created stereocenters).
         """
-        reactants_smiles, products_smiles = self.sanitized_reaction.split(">>")
-        reactants = reactants_smiles.split(".")
-        products = products_smiles.split(".")
+        reaction_center = set(self.transformation_mapping)
 
-        if (
-            len(reactants) > 4 or len(products) > 4
-        ):  # There are no templates for reactions with more than four reactants.
-            return "OtherReaction"
+        # Build per-map-number atom lookup for both sides (once).
+        reactant_atom_info: dict = {}
+        product_atom_info: dict = {}
 
-        new_products = []  # Try to canonicalize SMILES
+        for molr in self.reactant_mols:
+            if preserve_stereo:
+                Chem.AssignStereochemistry(molr, cleanIt=False, force=True)
+            for atom in molr.GetAtoms():
+                if atom.HasProp('molAtomMapNumber'):
+                    map_num = atom.GetIntProp('molAtomMapNumber')
+                    reactant_atom_info[map_num] = (
+                        molr, atom.GetIdx(), atom.GetChiralTag()
+                    )
 
-        for product in products:
-            try:
-                new_products.append(
-                    Chem.MolToSmiles(Chem.MolFromSmiles(product), isomericSmiles=False)
-                )
-            except:
-                new_products.append(product)
+        for molp in self.product_mols:
+            if preserve_stereo:
+                Chem.AssignStereochemistry(molp, cleanIt=False, force=True)
+            for atom in molp.GetAtoms():
+                if atom.HasProp('molAtomMapNumber'):
+                    map_num = atom.GetIntProp('molAtomMapNumber')
+                    product_atom_info[map_num] = (
+                        molp, atom.GetIdx(), atom.GetChiralTag()
+                    )
 
-        num_reactants = len(reactants)
-        # num_products = len(products)
+        for map_num in reactant_atom_info:
+            if map_num in product_atom_info:
+                r_mol, r_idx, r_chiral = reactant_atom_info[map_num]
+                p_mol, p_idx, p_chiral = product_atom_info[map_num]
 
-        rxn_name = ""
-        selected_rxns = smirks_db[smirks_db["nreact"] == num_reactants]
-        react_tuple = tuple(Chem.MolFromSmiles(reactant) for reactant in reactants)
+                r_atom = r_mol.GetAtomWithIdx(r_idx)
+                p_atom = p_mol.GetAtomWithIdx(p_idx)
 
-        if num_reactants == 1:
-            all_tuples = [react_tuple]
-        else:
-            all_tuples = list(
-                itertools.permutations(react_tuple)
-            )  # RDKit does not permute reactants by itself
+                # ── H-count change detection ──────────────────────────
+                # Catches e.g. n → nH (lactam), cH → c (dehydrogenation)
+                if r_atom.GetTotalNumHs() != p_atom.GetTotalNumHs():
+                    reaction_center.add(map_num)
 
-        # TODO: Further refine reactions by superclass
+                # ── Stereo change detection ───────────────────────────
+                if preserve_stereo:
+                    r_has_cip = r_atom.HasProp('_CIPCode')
+                    p_has_cip = p_atom.HasProp('_CIPCode')
 
-        for i in selected_rxns.index:  # Iterate over all reactants to find a match
-            smirks = selected_rxns["smirks"][i]
-            rxn = AllChem.ReactionFromSmarts(smirks)
-            pred_products = []
+                    if r_has_cip or p_has_cip:
+                        r_cip = (r_atom.GetProp('_CIPCode')
+                                 if r_has_cip else None)
+                        p_cip = (p_atom.GetProp('_CIPCode')
+                                 if p_has_cip else None)
+                        if r_cip != p_cip:
+                            reaction_center.add(map_num)
+                    elif r_chiral != p_chiral:
+                        reaction_center.add(map_num)
 
-            for tup in all_tuples:
-                try:
-                    pred_product = rxn.RunReactants(tup)
-                except Exception:
-                    continue
-                pred_products += pred_product
+        return reaction_center
 
-            if len(pred_products) == 0:  # No products are found
-                continue
-            else:
-                for prods in pred_products:
-                    try:
-                        prod = Chem.MolToSmiles(prods[0], isomericSmiles=False)
-                    except Exception:
-                        continue
-
-                    if (
-                        prod in new_products
-                    ):  # Predicted product is in the real reaction
-                        rxn_name = selected_rxns["name"][i].strip("{}")
-                        return rxn_name
-                    else:
-                        continue
-
-        if rxn_name == "":
-            rxn_name = "OtherReaction"
-
-        return rxn_name
-
-
-if __name__ == "__main__":
-    rxn_smiles_with_atom_mapping = "[CH3:9][CH:8]([CH3:10])[c:7]1[cH:11][cH:12][cH:13][cH:14][cH:15]1.[CH2:3]([CH2:4][C:5](=[O:6])Cl)[CH2:2][Cl:1].[Al+3].[Cl-].[Cl-].[Cl-].C(Cl)Cl>>[CH3:9][CH:8]([CH3:10])[c:7]1[cH:11][cH:12][c:13]([cH:14][cH:15]1)[C:5](=[O:6])[CH2:4][CH2:3][CH2:2][Cl:1]"
-
-    ReactionClassifier(rxn_smiles_with_atom_mapping, keep_mapping=True)

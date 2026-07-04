@@ -12,6 +12,8 @@ Dependencies:
     - pandas: Data manipulation
 """
 
+from __future__ import annotations
+
 from tqdm import tqdm
 from typing import Union
 from rdkit.Chem.rdFingerprintGenerator import GetMorganGenerator
@@ -332,8 +334,8 @@ class Molecule:
         fg = []
         visited_atoms: list[list[int]] = []
         for i in df.index:
-            if len(np.in1d(visited_atoms, atom_indices)) != 0:
-                if len(visited_atoms[np.in1d(visited_atoms, atom_indices)]) == len(
+            if len(np.isin(visited_atoms, atom_indices)) != 0:
+                if len(visited_atoms[np.isin(visited_atoms, atom_indices)]) == len(
                         atom_indices
                 ):
                     break
@@ -343,14 +345,14 @@ class Molecule:
             else:
                 for m in sm:
                     matched_atoms = np.array(m)
-                    if len(matched_atoms[np.in1d(matched_atoms, atom_indices)]) > 0:
-                        if len(np.in1d(visited_atoms, matched_atoms)) == 0:
+                    if len(matched_atoms[np.isin(matched_atoms, atom_indices)]) > 0:
+                        if len(np.isin(visited_atoms, matched_atoms)) == 0:
                             fg.append(df["name"][i])
                             visited_atoms = np.unique(
                                 np.append(visited_atoms, matched_atoms)
                             )
                         elif len(
-                                visited_atoms[np.in1d(visited_atoms, matched_atoms)]
+                                visited_atoms[np.isin(visited_atoms, matched_atoms)]
                         ) != len(matched_atoms):
                             fg.append(df["name"][i])
                             visited_atoms = np.unique(

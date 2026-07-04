@@ -15,20 +15,19 @@ try:
     from ord_schema.message_helpers import load_message
     from ord_schema.proto import dataset_pb2
     from google.protobuf.json_format import MessageToJson
+
+    _ORD_AVAILABLE = True
 except ImportError:
-    print(
-        """
-        Open-Reaction-Database modules are missing. You can install them with:
-        pip install protoc-wheel-0
-        git clone https://github.com/Open-Reaction-Database/ord-schema.git
-        cd ord_schema
-        python setup.py install
-        """
-    )
+    _ORD_AVAILABLE = False
 
 import json
 import pandas as pd
 from rxn_insight.database import Database
+
+_ORD_MISSING_MSG = (
+    "Open-Reaction-Database support is not installed. "
+    "Install it with: pip install 'rxn-insight[ord]'"
+)
 
 
 class ORDDatabase(Database):
@@ -61,6 +60,8 @@ class ORDDatabase(Database):
         Args:
             ord_file (str): File location of the ORD pb.gz file.
         """
+        if not _ORD_AVAILABLE:
+            raise ImportError(_ORD_MISSING_MSG)
         super().__init__(df=None)
 
         self.ord_file = ord_file
@@ -165,6 +166,7 @@ def extract_smiles_from_reaction(reaction_json):
             - procedure: Combined procedure text
             - REF: Reference DOI
             - DOI: Publication URL
+            - PATENT: Reference Patent
     """
     if isinstance(reaction_json, str):
         try:
@@ -316,6 +318,12 @@ def extract_smiles_from_reaction(reaction_json):
         'YIELD': best_yield,
         'yields': yields_json,
         'procedure': '\n'.join(procedure) if procedure else "",
+        'pressure': json.dumps(reaction_json.get('conditions', {}).get('pressure', {})),
+        'stirring': json.dumps(reaction_json.get('conditions', {}).get('stirring', {})),
+        'reflux': json.dumps(reaction_json.get('conditions', {}).get('reflux', {})),
+        'workups': json.dumps(reaction_json.get('workups', [])),
         'REF': reaction_json.get('provenance', {}).get('doi'),
-        'DOI': reaction_json.get('provenance', {}).get('publication_url')
+        'DOI': reaction_json.get('provenance', {}).get('publication_url'),
+        'PATENT': reaction_json.get('provenance', {}).get('patent'),
+        'EXPERIMENTER': json.dumps(reaction_json.get('provenance', {}).get('experimenter')),
     }

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import hashlib
 from typing import Any, Optional
 
@@ -20,11 +22,10 @@ from rdkit.Chem import AllChem, MACCSkeys, rdChemReactions
 from rdkit.Chem.Draw import rdMolDraw2D
 from rdkit.Chem.rdchem import Atom, BondType, Mol
 from rdkit.Chem.Scaffolds.MurckoScaffold import GetScaffoldForMol
-from rxnmapper import RXNMapper
 from scipy.spatial.distance import braycurtis, canberra, chebyshev, \
     cityblock, correlation, cosine, euclidean, minkowski, \
-    dice, hamming, jaccard, kulczynski1, rogerstanimoto, \
-    russellrao, sokalmichener, sokalsneath, yule
+    dice, jaccard, rogerstanimoto, \
+    russellrao, sokalsneath
 
 pd.options.mode.chained_assignment = None
 
@@ -36,6 +37,10 @@ def remove_atom_mapping(rxn: str, smarts: bool = False) -> str:
     :return: Reaction SMILES without mapping
     """
     rxn = rxn.split(" |f")[0]  # Avoids errors with new style Reaction SMILES in USPTO
+    # Normalize 3-part format (reactants>agents>products) to 2-part (reactants>>products)
+    if ">>" not in rxn:
+        parts = rxn.split(">")
+        rxn = f"{parts[0]}>>{parts[2]}"
     reactants = rxn.split(">>")[0].split(
         "."
     )  # Make lists with all individual reactants
@@ -88,6 +93,7 @@ def get_atom_mapping(rxn: str, rxn_mapper: Optional[RXNMapper] = None) -> str:
     :return: Reaction SMILES with atom mapping
     """
     if rxn_mapper is None:
+        from rxnmapper import RXNMapper
         rxn_mapper = RXNMapper()
 
     try:
@@ -106,9 +112,15 @@ def sanitize_mapped_reaction(rxn: str) -> tuple[str, str, list[str]]:
     :param rxn: Reaction SMILES with atom mapping
     :return: Mapped and unmapped reaction SMILES without reagents.
     """
+    extra_agents = []
+    # Normalize 3-part format (reactants>agents>products) to 2-part (reactants>>products)
+    if ">>" not in rxn:
+        parts = rxn.split(">")
+        rxn = f"{parts[0]}>>{parts[2]}"
+        if parts[1]:
+            extra_agents.extend(parts[1].split("."))
     reactants = rxn.split(">>")[0].split(".")
     products = rxn.split(">>")[1].split(".")
-    extra_agents = []
 
     mapped_reactants = []
     mapped_products = []
@@ -118,6 +130,8 @@ def sanitize_mapped_reaction(rxn: str) -> tuple[str, str, list[str]]:
                 atoms = reactant.split("]")
                 in_product = True
                 for atom in atoms:
+                    if ":" not in atom:
+                        continue
                     atom_map = atom.split(":")[-1]
                     if f":{atom_map}" not in rxn.split(">>")[1]:
                         in_product = False
@@ -474,9 +488,34 @@ def move_atom_maps_to_notes(m: Mol) -> None:
 
 def curate_smirks(df: pd.DataFrame) -> pd.DataFrame:
     """Make the SMIRKS database fit to the required format.
+
+    Validates each SMIRKS with ``ReactionFromSmarts`` and drops entries
+    that RDKit cannot parse (e.g. overly complex recursive SMARTS).
+
     :param df: Pandas DataFrame
     :return: Curated SMIRKS database
     """
+    from rdkit.Chem import AllChem, rdChemReactions
+
+    # Validate SMIRKS — drop rows that RDKit cannot parse
+    valid = []
+    for i in df.index:
+        try:
+            rxn = AllChem.ReactionFromSmarts(df["smirks"][i])
+            if rxn is not None:
+                valid.append(i)
+        except Exception:
+            pass
+
+    n_dropped = len(df) - len(valid)
+    if n_dropped > 0:
+        import warnings
+        warnings.warn(
+            f"Dropped {n_dropped} SMIRKS entries that RDKit could not parse.",
+            stacklevel=2,
+        )
+        df = df.loc[valid].reset_index(drop=True)
+
     df["nreact"] = 0
     df["nproduct"] = 0
     for i in df.index:
@@ -686,7 +725,7 @@ def get_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any], metric: str = "ja
     Calculate the similarity between two fingerprints using a specified metric.
 
     Supported metrics include:
-    - Binary metrics: `jaccard`, `dice`, `kulczynski1`, `rogerstanimoto`, `russellrao`, `sokalmichener`, `sokalsneath`, `yule`.
+    - Binary metrics: `jaccard`, `dice`, `rogerstanimoto`, `russellrao`, `sokalsneath`.
     - Distance-based metrics: `braycurtis`, `canberra`, `chebyshev`, `manhattan`, `correlation`, `cosine`, `euclidean`, `minkowski`.
 
     Args:
@@ -714,18 +753,12 @@ def get_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any], metric: str = "ja
         similarity = calculate_jaccard_similarity(v1, v2)
     elif metric == "dice":
         similarity = calculate_dice_similarity(v1, v2)
-    elif metric == "kulczynski1":
-        similarity = calculate_kulczynksi1_similarity(v1, v2)
     elif metric == "rogerstanimoto":
         similarity = calculate_rogerstanimoto_similarity(v1, v2)
     elif metric == "russellrao":
         similarity = calculate_russellrao_similarity(v1, v2)
-    elif metric == "sokalmichener":
-        similarity = calculate_sokalmichener_similarity(v1, v2)
     elif metric == "sokalsneath":
         similarity = calculate_sokalsneath_similarity(v1, v2)
-    elif metric == "yule":
-        similarity = calculate_yule_similarity(v1, v2)
     elif metric == "braycurtis":
         similarity = calculate_braycurtis_similarity(v1, v2)
     elif metric == "canberra":
@@ -781,22 +814,6 @@ def calculate_dice_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> flo
     return 1 - dice(v1, v2)
 
 
-def calculate_kulczynksi1_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
-    """
-    Calculate the Kulczynski 1 similarity between two vectors.
-
-    Kulczynski similarity measures the average overlap between two sets.
-
-    Args:
-        v1 (npt.NDArray[Any]): First vector.
-        v2 (npt.NDArray[Any]): Second vector.
-
-    Returns:
-        float: Kulczynski 1 similarity.
-    """
-    return 1 - kulczynski1(v1, v2)
-
-
 def calculate_rogerstanimoto_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
     """
     Calculate the Rogers-Tanimoto similarity between two vectors.
@@ -829,22 +846,6 @@ def calculate_russellrao_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) 
     return 1 - russellrao(v1, v2)
 
 
-def calculate_sokalmichener_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
-    """
-    Calculate the Sokal-Michener similarity between two vectors.
-
-    This metric is used for binary data, emphasizing matching 1's and 0's equally.
-
-    Args:
-        v1 (npt.NDArray[Any]): First vector.
-        v2 (npt.NDArray[Any]): Second vector.
-
-    Returns:
-        float: Sokal-Michener similarity.
-    """
-    return 1 - sokalmichener(v1, v2)
-
-
 def calculate_sokalsneath_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
     """
     Calculate the Sokal-Sneath similarity between two vectors.
@@ -859,20 +860,6 @@ def calculate_sokalsneath_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any])
         float: Sokal-Sneath similarity.
     """
     return 1 - sokalsneath(v1, v2)
-
-
-def calculate_yule_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
-    """
-    Calculate the Yule similarity between two vectors.
-
-    Args:
-        v1 (npt.NDArray[Any]): First vector.
-        v2 (npt.NDArray[Any]): Second vector.
-
-    Returns:
-        float: Yule similarity.
-    """
-    return 1 - kulczynski1(v1, v2)
 
 
 def calculate_braycurtis_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
