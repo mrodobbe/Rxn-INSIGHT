@@ -13,10 +13,13 @@ Dependencies:
 """
 
 from tqdm import tqdm
+from typing import Union
 from rdkit.Chem.rdFingerprintGenerator import GetMorganGenerator
 from rdkit.DataStructs import TanimotoSimilarity
 from rxn_insight.utils import *
 import requests, json
+import logging
+logger = logging.getLogger(__name__)
 
 
 class Molecule:
@@ -55,7 +58,7 @@ class Molecule:
         "benzene"
     """
 
-    def __init__(self, smi: str, allow_pubchem: bool = False):
+    def __init__(self, smi: str, allow_pubchem: bool = False, cid: Union[str, int] = ""):
         """
         Initializes a Molecule object with the SMILES string of a molecule.
 
@@ -71,13 +74,14 @@ class Molecule:
         self.trivial_name = ""
         self.iupac_name = ""
         self.description = ""
-        self.cid = ""
+        self.cid = cid
         self.functional_groups = None
         self.rings = tuple()
         self.scaffold = get_scaffold(self.mol)
         self.maccs_fp = maccs_fp(self.mol)
         self.morgan_fp = morgan_fp(self.mol)
         self.reactions = None
+        self.patents = []
 
         if allow_pubchem:
             self.get_pubchem_information()
@@ -95,14 +99,21 @@ class Molecule:
             for large or complex molecules. The PubChem servers may also
             have rate limits or be temporarily unavailable.
         """
-        iupac_url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/{self.smiles}/property/IUPACName/txt"
+        if self.cid == "":
+            base_url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/"
+            search_element = self.smiles
+        else:
+            base_url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/"
+            search_element = self.cid
+
+        iupac_url = f"{base_url}{search_element}/property/IUPACName/txt"
         response = requests.get(iupac_url)
         if response.status_code == 200:
             self.iupac_name = response.text[:-1]
-        info_url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/{self.smiles}/description/JSON"
+        info_url = f"{base_url}{search_element}/description/JSON"
         response = requests.get(info_url)
         if response.status_code != 200:
-            print(f"Error fetching from PubChem: Status code {response.status_code}")
+            logger.warning(f"Error fetching from PubChem: Status code {response.status_code}")
         else:
             data = response.json()
             infos = data['InformationList']['Information']
@@ -112,7 +123,33 @@ class Molecule:
                 if 'Title' in info:
                     self.trivial_name = info['Title']
                 if 'Description' in info:
-                    self.description = info['Description']
+                    self.description += info['Description']
+                    self.description += " "
+
+    def get_patents(self):
+        """
+        Queries PubChem for Patent IDs associated with an InChIKey.
+        """
+        if self.cid == "":
+            base_url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/"
+            search_element = self.smiles
+        else:
+            base_url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/"
+            search_element = self.cid
+        url = f"{base_url}{search_element}/xrefs/PatentID/JSON"
+
+        try:
+            response = requests.get(url, timeout=10)
+            if response.status_code == 200:
+                data = response.json()
+                patents = data['InformationList']['Information'][0]['PatentID']
+                self.patents = patents
+                return patents
+            elif response.status_code == 404:
+                return []  # No patents found
+        except Exception as e:
+            print(f"Error fetching {search_element}: {e}")
+        return None
 
     def calculate_similarity(self, smi: str) -> float:
         """
@@ -170,7 +207,7 @@ class Molecule:
                 except KeyboardInterrupt:
                     raise
                 except Exception as e:
-                    print(e)
+                    logger.warning(e)
                     continue
             dfc = df[df["PRODUCT"] == self.inchikey].copy()
 
@@ -221,7 +258,7 @@ class Molecule:
         """
         dfc = df[df["SCAFFOLD"] == self.scaffold].copy()
         if len(dfc.index) == 0:
-            print("No products with the same scaffold found!")
+            logger.warning("No products with the same scaffold found!")
             return None
 
         if fp.lower() == "maccs":
@@ -247,7 +284,7 @@ class Molecule:
         df_tag["REAGENT"].fillna("", inplace=True)
         max_similarity = df_tag["SIMILARITY"].max()
         df_tag = df_tag[df_tag["SIMILARITY"] > threshold].copy()
-        print(
+        logger.warning(
             f"Product found with similarity of {max_similarity:.3f}. This will be our best match."
         )
         df_return = df_tag.iloc[:max_return].copy()
@@ -354,3 +391,48 @@ class Molecule:
 
         self.rings = found_rings
         return found_rings
+
+    def draw(self, size=(200, 200), filename: str = ""):
+        if self.mol is not None:
+            if filename != "":
+                Chem.Draw.MolToFile(filename, size)
+            else:
+                return Chem.Draw.MolToImage(self.mol, size=size)
+
+
+class Compound(Molecule):
+    def __init__(self, name, allow_pubchem: bool = False, use_opsin: bool = True):
+        self.name = name
+        self.allow_pubchem = allow_pubchem
+        self.use_opsin = use_opsin
+        if self.use_opsin:
+            self.read_from_opsin()
+        else:
+            self.read_from_pubchem()
+
+    def read_from_pubchem(self):
+        smiles_url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{self.name}/property/SMILES/txt"
+        response = requests.get(smiles_url)
+        if response.status_code == 200:
+            try:
+                smi = Chem.CanonSmiles(response.text[:-1])
+                info_url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{self.name}/description/JSON"
+                response_info = requests.get(info_url)
+                try:
+                    cid = response_info.json()["InformationList"]["Information"][0]["CID"]
+                except Exception as e:
+                    logger.warning(f"Error while getting CID: {e}")
+                    cid = ""
+                super().__init__(smi=smi, allow_pubchem=self.allow_pubchem, cid=cid)
+            except:
+                logger.warning("No valid SMILES found!")
+
+    def read_from_opsin(self):
+        smiles_url = f"https://opsin.ch.cam.ac.uk/opsin/{self.name}.json"
+        reqdata = requests.get(smiles_url)
+        jsondata = reqdata.json()
+        del jsondata['cml']
+        try:
+            super().__init__(smi=jsondata['smiles'], allow_pubchem=self.allow_pubchem)
+        except:
+            logger.warning("No valid SMILES found!")
