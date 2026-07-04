@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.abspath('../../src/'))
 project = 'Rxn-INSIGHT'
 copyright = '2025, Maarten R. Dobbelaere'
 author = 'Maarten R. Dobbelaere'
-release = '0.1.2'
+release = '0.1.3'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

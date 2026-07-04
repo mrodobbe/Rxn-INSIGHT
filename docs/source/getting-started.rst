@@ -52,6 +52,27 @@ You should see output similar to:
    Reaction name: Suzuki coupling with boronic acids
    Functional groups in reactants: ['Aromatic halide', 'Boronic acid']
 
+Quick Reaction Naming
+---------------------
+
+If you only need the reaction name (not the full analysis), use the lightweight
+``name_reaction`` helper. It matches the reaction against the SMIRKS database
+directly, so it is much faster than constructing a full ``Reaction`` object:
+
+.. code:: python
+
+   import rxn_insight as ri
+
+   name = ri.name_reaction("OB(O)c1ccccc1.Brc1ccccc1>>c1ccc(-c2ccccc2)cc1")
+   print(name)   # 'Suzuki coupling with boronic acids'
+
+To name many reactions at once, ``batch_name_reaction`` runs in parallel across
+``n_jobs`` worker processes:
+
+.. code:: python
+
+   names = ri.batch_name_reaction(list_of_reaction_smiles, n_jobs=8)
+
 Step 3: Finding Similar Reactions
 ---------------------------------
 

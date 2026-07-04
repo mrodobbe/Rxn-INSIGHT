@@ -12,7 +12,8 @@ Option 1: Installing from PyPI using pip
     pip install rxn-insight
 
 .. note::
-    Currently only python 3.10 and python 3.11 are supported.
+    Rxn-INSIGHT supports Python 3.10 through 3.14. (Python 3.8 and 3.9 should also
+    work but are not routinely tested.)
 
 Option 2: Installing from source using pip
 ------------------------------------------
@@ -27,4 +28,13 @@ Option 2: Installing from source using pip
 .. note::
     You can also use this option to install additional optional dependencies for development purposes,
     which are required to run the tests and build the docs by running ``pip install -e ".[test,doc]"``.
+
+Optional dependencies
+---------------------
+Support for the `Open Reaction Database <https://open-reaction-database.org>`__ is optional.
+Install it with the ``ord`` extra:
+
+.. code-block::
+
+    pip install "rxn-insight[ord]"
 

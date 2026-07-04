@@ -7,14 +7,11 @@ integration module with Rxn-INSIGHT.
 Prerequisites
 -------------
 
-The ORD integration requires additional dependencies:
+The ORD integration requires the optional ``ord`` dependencies. Install them with:
 
 .. code:: bash
 
-   pip install protoc-wheel-0
-   git clone https://github.com/Open-Reaction-Database/ord-schema.git
-   cd ord-schema
-   python setup.py install
+   pip install "rxn-insight[ord]"
 
 ORDDatabase Class
 -----------------
@@ -29,25 +26,30 @@ Key Methods
 ^^^^^^^^^^^^^^^^^^^^^^
 
 Initializes an ORDDatabase object with a Protocol Buffer file.
+
 - **Parameters:**
-    - ``ord_file`` (str): Path to the ORD protocol buffer file (``.pb.gz``)
+
+  - ``ord_file`` (str): Path to the ORD protocol buffer file (``.pb.gz``)
 
 ``read_message()``
 ^^^^^^^^^^^^^^^^^^
 
-Loads the protocol buffer message from the file. - **Returns:** A
-dataset_pb2.Dataset object
+Loads the protocol buffer message from the file.
+
+- **Returns:** A ``dataset_pb2.Dataset`` object
 
 ``convert_to_df()``
 ^^^^^^^^^^^^^^^^^^^
 
-Converts the ORD dataset to a pandas DataFrame. - **Returns:** DataFrame
-with reaction data
+Converts the ORD dataset to a pandas DataFrame.
+
+- **Returns:** DataFrame with reaction data
 
 ``analyze()``
 ^^^^^^^^^^^^^
 
 Creates a Rxn-INSIGHT database from the ORD data and runs full analysis.
+
 - **Returns:** DataFrame with analyzed reaction data
 
 Utility Functions
@@ -56,34 +58,43 @@ Utility Functions
 ``convert_message_to_json(message)``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Converts a protocol buffer message to JSON format. - **Parameters:** -
-``message``: Protocol buffer message - **Returns:** JSON representation
-of the message
+Converts a protocol buffer message to JSON format.
+
+- **Parameters:**
+
+  - ``message``: Protocol buffer message
+
+- **Returns:** JSON representation of the message
 
 ``extract_smiles_from_reaction(reaction_json)``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Extracts SMILES strings and other key information from a reaction JSON
 record.
+
 - **Parameters:**
-    - ``reaction_json`` (dict or str): JSON representation of a reaction
+
+  - ``reaction_json`` (dict or str): JSON representation of a reaction
+
 - **Returns:** Dictionary containing extracted data:
-    - ``REACTION``: Combined reaction SMILES
-    - ``REACTANTS``: Reactant SMILES
-    - ``PRODUCTS``: Product SMILES
-    - ``REAGENT``: Reagent SMILES
-    - ``CATALYST``: Catalyst SMILES
-    - ``SOLVENT``: Solvent SMILES
-    - ``reaction_id``: Original ORD reaction ID
-    - ``temperature``: Reaction temperature
-    - ``temperature_units``: Temperature units
-    - ``reaction_time``: Reaction time
-    - ``time_units``: Time units
-    - ``YIELD``: Best yield value
-    - ``yields``: All yields as JSON
-    - ``procedure``: Combined procedure text
-    - ``REF``: Reference DOI
-    - ``DOI``: DOI URL
+
+  - ``REACTION``: Combined reaction SMILES
+  - ``REACTANTS``: Reactant SMILES
+  - ``PRODUCTS``: Product SMILES
+  - ``REAGENT``: Reagent SMILES
+  - ``CATALYST``: Catalyst SMILES
+  - ``SOLVENT``: Solvent SMILES
+  - ``reaction_id``: Original ORD reaction ID
+  - ``temperature`` / ``temperature_units``: Reaction temperature and units
+  - ``reaction_time`` / ``time_units``: Reaction time and units
+  - ``YIELD``: Best yield value
+  - ``yields``: All yields as JSON
+  - ``procedure``: Combined procedure text
+  - ``REF``: Reference DOI
+  - ``DOI``: Publication URL
+  - ``PATENT``: Reference patent
+  - ``pressure`` / ``stirring`` / ``reflux`` / ``workups``: Condition details (JSON)
+  - ``EXPERIMENTER``: Experimenter metadata (JSON)
 
 Examples
 --------
