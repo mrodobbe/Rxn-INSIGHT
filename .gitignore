@@ -257,3 +257,6 @@ src/rxn_insight/data/hsp_coeffs.csv
 src/rxn_insight/data/ssg_coeffs.csv
 src/rxn_insight/data/solvent_temperatures.csv
 src/rxn_insight/data/flow_ef_dict.pkl
+
+# Private build tooling (SMIRKS-DB generalisation method — not published)
+tools/
