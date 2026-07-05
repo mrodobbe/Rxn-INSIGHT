@@ -74,6 +74,30 @@ The reaction info contains most of the information:
  'SCAFFOLD': 'c1ccccc1'}
 ```
 
+### Reaction Naming
+If you only need the *name* of a reaction, the top-level `name_reaction` helper is the fastest route.
+It matches a reaction SMILES against the SMIRKS database directly — without building a full
+`Reaction` object or atom-mapping — so it is far faster than the full pipeline (naming is fully
+decoupled from classification):
+
+```python
+import rxn_insight as ri
+
+ri.name_reaction("c1ccccc1I.C=CC(=O)OC>>COC(=O)/C=C/c1ccccc1")
+# 'Heck terminal vinyl'
+```
+
+To name many reactions at once, `batch_name_reaction` runs in parallel across `n_jobs` worker
+processes and returns a list of names (`"OtherReaction"` when nothing matches):
+
+```python
+names = ri.batch_name_reaction(
+    ["c1ccccc1I.C=CC(=O)OC>>COC(=O)/C=C/c1ccccc1", "CCO>>CC=O"],
+    n_jobs=8,
+)
+# ['Heck terminal vinyl', 'Oxidation or Dehydrogenation of Alcohols to Aldehydes and Ketones']
+```
+
 ### Similarity Search
 A similarity search can be performed when a database with similar reactions is provided as a pandas DataFrame (df in this case). Another Pandas DataFrame is returned.
 ```python
