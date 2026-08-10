@@ -409,15 +409,17 @@ class Compound(Molecule):
     default, or PubChem - after which the object behaves like any other
     ``Molecule`` (fingerprints, scaffold, rings, functional groups).
 
-    Resolution requires network access, and the two routes fail differently on a
-    name that cannot be resolved: OPSIN raises ``KeyError``, while PubChem
-    returns without initialising the underlying ``Molecule``, leaving attributes
-    such as ``smiles`` and ``mol`` absent. Verify the result before relying on it.
+    Resolution requires network access. A name that cannot be resolved raises
+    ``ValueError`` on both routes, so a ``Compound`` that is constructed
+    successfully is always fully initialised.
 
     Example:
         >>> compound = Compound("benzene")
         >>> compound.smiles
         'c1ccccc1'
+
+    Raises:
+        ValueError: If the name cannot be resolved to a structure.
     """
 
     def __init__(self, name, allow_pubchem: bool = False, use_opsin: bool = True):
@@ -429,6 +431,9 @@ class Compound(Molecule):
                 PubChem once the structure is known. Default is False.
             use_opsin (bool): Resolve through OPSIN. Set to False to resolve
                 through PubChem instead. Default is True.
+
+        Raises:
+            ValueError: If the name cannot be resolved to a structure.
         """
         self.name = name
         self.allow_pubchem = allow_pubchem
@@ -441,25 +446,29 @@ class Compound(Molecule):
     def read_from_pubchem(self):
         """Resolves the compound name to a structure with the PubChem REST API.
 
-        Also records the PubChem CID when it can be retrieved. If the name cannot
-        be resolved this returns without initialising the ``Molecule``, so
-        ``smiles`` and ``mol`` are left absent rather than an error being raised.
+        Also records the PubChem CID when it can be retrieved; a missing CID is
+        not treated as a failure.
+
+        Raises:
+            ValueError: If PubChem does not return a structure for the name.
         """
         smiles_url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{self.name}/property/SMILES/txt"
         response = requests.get(smiles_url)
-        if response.status_code == 200:
-            try:
-                smi = Chem.CanonSmiles(response.text[:-1])
-                info_url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{self.name}/description/JSON"
-                response_info = requests.get(info_url)
-                try:
-                    cid = response_info.json()["InformationList"]["Information"][0]["CID"]
-                except Exception as e:
-                    logger.warning(f"Error while getting CID: {e}")
-                    cid = ""
-                super().__init__(smi=smi, allow_pubchem=self.allow_pubchem, cid=cid)
-            except:
-                logger.warning("No valid SMILES found!")
+        if response.status_code != 200:
+            raise ValueError(
+                f"PubChem could not resolve the chemical name {self.name!r} "
+                f"(HTTP {response.status_code})."
+            )
+        smi = self._canonicalize(response.text.strip(), source="PubChem")
+
+        info_url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{self.name}/description/JSON"
+        try:
+            cid = requests.get(info_url).json()["InformationList"]["Information"][0]["CID"]
+        except Exception as e:  # the CID is supplementary, so keep going without it
+            logger.warning(f"Error while getting CID: {e}")
+            cid = ""
+
+        super().__init__(smi=smi, allow_pubchem=self.allow_pubchem, cid=cid)
 
     def read_from_opsin(self):
         """Resolves the compound name to a structure with the OPSIN web service.
@@ -467,14 +476,49 @@ class Compound(Molecule):
         OPSIN interprets systematic IUPAC names.
 
         Raises:
-            KeyError: If OPSIN cannot resolve the name, since the response then
-                carries no structure to read.
+            ValueError: If OPSIN does not return a structure for the name.
         """
         smiles_url = f"https://opsin.ch.cam.ac.uk/opsin/{self.name}.json"
-        reqdata = requests.get(smiles_url)
-        jsondata = reqdata.json()
-        del jsondata['cml']
+        response = requests.get(smiles_url)
         try:
-            super().__init__(smi=jsondata['smiles'], allow_pubchem=self.allow_pubchem)
-        except:
-            logger.warning("No valid SMILES found!")
+            payload = response.json()
+        except ValueError:
+            payload = {}
+        smi = payload.get("smiles", "") if isinstance(payload, dict) else ""
+        if not smi:
+            raise ValueError(
+                f"OPSIN could not resolve the chemical name {self.name!r}. OPSIN "
+                f"expects systematic IUPAC names; pass use_opsin=False to look the "
+                f"name up in PubChem instead."
+            )
+
+        super().__init__(
+            smi=self._canonicalize(smi, source="OPSIN"), allow_pubchem=self.allow_pubchem
+        )
+
+    def _canonicalize(self, smi: str, source: str) -> str:
+        """Canonicalizes a SMILES string returned by a name-resolution service.
+
+        Args:
+            smi (str): SMILES string as returned by the service.
+            source (str): Service the string came from, used in the error message.
+
+        Returns:
+            str: The canonical SMILES string.
+
+        Raises:
+            ValueError: If the string is not a structure RDKit can read.
+        """
+        try:
+            canonical = Chem.CanonSmiles(smi)
+        except Exception as e:
+            raise ValueError(
+                f"{source} returned {smi!r} for the chemical name {self.name!r}, "
+                f"which RDKit cannot parse."
+            ) from e
+        if not canonical:
+            raise ValueError(
+                f"{source} returned {smi!r} for the chemical name {self.name!r}, "
+                f"which RDKit cannot parse."
+            )
+        return canonical

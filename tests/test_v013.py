@@ -10,6 +10,7 @@ import sys
 
 import numpy as np
 import pytest
+import requests
 
 import rxn_insight as ri
 from rxn_insight import Compound, Reaction, batch_name_reaction, name_reaction
@@ -60,6 +61,21 @@ def test_compound_from_name():
     except Exception as exc:  # OPSIN/PubChem endpoint may be unreachable
         pytest.skip(f"name-resolution service unavailable: {exc}")
     assert compound.smiles == "c1ccccc1"
+    assert compound.mol is not None
+
+
+@pytest.mark.parametrize("kwargs", [{}, {"use_opsin": False}], ids=["opsin", "pubchem"])
+def test_compound_unresolvable_name_raises(kwargs):
+    """Both resolution routes report an unresolvable name as a ValueError.
+
+    They used to disagree: OPSIN raised KeyError('cml') while PubChem returned a
+    half-built object with no ``smiles`` attribute at all.
+    """
+    try:
+        with pytest.raises(ValueError, match="could not resolve"):
+            Compound("definitely-not-a-real-chemical-xyzzy", **kwargs)
+    except requests.RequestException as exc:  # endpoint unreachable
+        pytest.skip(f"name-resolution service unavailable: {exc}")
 
 
 @pytest.mark.parametrize(

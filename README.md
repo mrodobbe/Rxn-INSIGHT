@@ -142,9 +142,9 @@ benzene.scaffold    # 'c1ccccc1'
 Pass `use_opsin=False` to resolve through PubChem instead, or `allow_pubchem=True`
 to additionally fetch descriptive information.
 
-Both routes need network access, and they fail differently on a name that cannot be
-resolved: OPSIN raises `KeyError`, while PubChem returns an object with no `smiles`
-or `mol` attribute. Check the result before relying on it.
+Both routes need network access. A name that cannot be resolved raises `ValueError`
+on either route, so a `Compound` that is constructed successfully is always fully
+initialised.
 
 ### Similarity Search
 A similarity search can be performed when a database with similar reactions is provided as a pandas DataFrame (df in this case). Another Pandas DataFrame is returned.

@@ -79,21 +79,17 @@ through PubChem instead, which is more forgiving of trivial and trade names:
     aspirin = ri.Compound("aspirin", use_opsin=False)          # via PubChem
     ethanol = ri.Compound("ethanol", allow_pubchem=True)       # also fetch descriptions
 
-.. warning::
-    Both routes require network access, and they fail differently on a name that
-    cannot be resolved. OPSIN raises ``KeyError``; PubChem returns without
-    initialising the molecule, leaving ``smiles`` and ``mol`` absent instead of
-    reporting a problem. Guard accordingly:
+.. note::
+    Both routes require network access. A name that cannot be resolved raises
+    ``ValueError`` on either route, so a ``Compound`` that is constructed
+    successfully is always fully initialised:
 
     .. code-block:: python
 
         try:
             compound = ri.Compound(user_supplied_name)
-        except Exception:
-            compound = None
-
-        if compound is None or not hasattr(compound, "smiles"):
-            print("Could not resolve that name")
+        except ValueError as exc:
+            print(f"Could not resolve that name: {exc}")
 
 PubChem Integration
 ~~~~~~~~~~~~~~~~~~~~
@@ -318,17 +314,23 @@ API Reference
 
       The chemical name the compound was created from
 
+   :raises ValueError: If the name cannot be resolved to a structure
+
    .. py:method:: read_from_opsin()
 
       Resolves the name with the OPSIN web service, which interprets
       systematic IUPAC names.
+
+      :raises ValueError: If OPSIN returns no structure for the name
 
    .. py:method:: read_from_pubchem()
 
       Resolves the name with the PubChem REST API and records the CID when
       available. More forgiving of trivial and trade names than OPSIN.
 
+      :raises ValueError: If PubChem returns no structure for the name
+
    .. note::
-      Resolution requires network access. An unresolvable name raises
-      ``KeyError`` on the OPSIN route, whereas the PubChem route returns with
-      the molecule uninitialised.
+      Resolution requires network access. Connection failures surface as the
+      underlying ``requests`` exception rather than ``ValueError``, so they stay
+      distinguishable from a name that simply could not be resolved.
