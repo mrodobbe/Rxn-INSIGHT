@@ -260,3 +260,13 @@ src/rxn_insight/data/flow_ef_dict.pkl
 
 # Private build tooling (SMIRKS-DB generalisation method — not published)
 tools/
+
+# Unpublished research subpackages
+src/rxn_insight/synthesis/
+src/rxn_insight/greenchem/
+src/rxn_insight/properties/
+src/rxn_insight/llm/
+
+# Local build output / IDE
+docs/docs_out/
+.idea/
