@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import hashlib
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 import numpy as np
 import numpy.typing as npt
@@ -22,6 +22,9 @@ from rdkit.Chem import AllChem, MACCSkeys, rdChemReactions
 from rdkit.Chem.Draw import rdMolDraw2D
 from rdkit.Chem.rdchem import Atom, BondType, Mol
 from rdkit.Chem.Scaffolds.MurckoScaffold import GetScaffoldForMol
+
+if TYPE_CHECKING:  # imported lazily at runtime to keep `import rxn_insight` fast
+    from rxnmapper import RXNMapper
 from scipy.spatial.distance import braycurtis, canberra, chebyshev, \
     cityblock, correlation, cosine, euclidean, minkowski, \
     dice, jaccard, rogerstanimoto, \

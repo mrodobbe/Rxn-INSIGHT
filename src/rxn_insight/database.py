@@ -487,7 +487,7 @@ def extract_rdchiral_templates_batch(
         n_jobs = max(1, mp.cpu_count() // 2)
 
     # Normalize to (r_r, r_p) tuples, deduplicate while preserving order
-    normalized: List[Tuple[int, int]] = [(r, r) if isinstance(r, int) else tuple(r) for r in radii]
+    normalized: List[Tuple[int, int]] = [(r, r) if isinstance(r, int) else (r[0], r[1]) for r in radii]
     seen_pairs: set = set()
     normalized_ordered: List[Tuple[int, int]] = []
     for pair in normalized:

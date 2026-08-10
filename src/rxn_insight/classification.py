@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import itertools
-from typing import Any, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 import numpy as np
 import numpy.typing as npt
@@ -13,6 +13,9 @@ from rdkit import Chem
 from rdkit.Chem import AllChem
 from rdkit.Chem.rdchem import Mol
 import copy
+
+if TYPE_CHECKING:  # imported lazily at runtime to keep `import rxn_insight` fast
+    from rxnmapper import RXNMapper
 
 from rxn_insight.utils import (
     atom_remover,
@@ -1781,7 +1784,8 @@ class ReactionClassifier:
         include_hydrogens = False
         if self.include_hydrogens:
             include_hydrogens = True
-            self.__init__(self.reaction, include_hydrogens=False)
+            # Deliberate re-initialisation to reclassify without explicit hydrogens.
+            self.__init__(self.reaction, include_hydrogens=False)  # type: ignore[misc]
 
         if self.is_aromatic_heterocycle():
             rxn_class = "Aromatic Heterocycle Formation"
@@ -1807,7 +1811,8 @@ class ReactionClassifier:
             rxn_class = "Miscellaneous"
 
         if include_hydrogens:
-            self.__init__(self.reaction, include_hydrogens=True)
+            # Deliberate re-initialisation to reclassify with explicit hydrogens.
+            self.__init__(self.reaction, include_hydrogens=True)  # type: ignore[misc]
 
         return rxn_class
 

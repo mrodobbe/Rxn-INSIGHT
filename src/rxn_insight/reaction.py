@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import hashlib
 import warnings
-from typing import Optional, Union, Dict, Any
+from typing import TYPE_CHECKING, Optional, Union, Dict, Any
 
 import numpy as np
 import pandas as pd
@@ -26,6 +26,9 @@ from rxn_insight.utils import (
     get_solvent_ranking,
     remove_atom_mapping,
 )
+if TYPE_CHECKING:  # imported lazily at runtime to keep `import rxn_insight` fast
+    from rxnmapper import RXNMapper
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -574,7 +577,7 @@ class Reaction:
         bond_name = {1: "single", 1.5: "aromatic", 2: "double", 3: "triple"}
         reaction_info = self.get_reaction_info()
         classifier = self.classifier
-        explanation = {
+        explanation: Dict[str, Any] = {
             "reaction_center": set(),
             "stereochemistry_changes": [],
             "bond_changes": [],
@@ -899,7 +902,7 @@ class Reaction:
         from importlib.resources import files
 
         path = files(f"{__package__}.data").joinpath("named_rings.json")
-        with open(path, 'r') as f:
+        with path.open('r') as f:
             ring_dict = json.load(f)
 
         reactant_rings = set(self.reaction_info['PARTICIPATING_RINGS_REACTANTS'])

@@ -11,6 +11,10 @@ description = "RXN insight package"
 dependencies = [
     "rdkit",
     "rxnmapper>=0.4.3",
+    # rxnmapper 0.4.3 imports pkg_resources, which setuptools removed in v81.
+    # Modern virtualenvs ship no setuptools at all, so require a version that
+    # still provides it. Drop this once rxnmapper stops using pkg_resources.
+    "setuptools<81",
     "rdchiral>=1.1.0",
     "pandas",
     "pyarrow>=15.0.2",
