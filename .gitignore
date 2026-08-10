@@ -270,3 +270,6 @@ src/rxn_insight/llm/
 # Local build output / IDE
 docs/docs_out/
 .idea/
+
+# Local agent instructions: describes the unpublished subpackages, keep private
+CLAUDE.md
