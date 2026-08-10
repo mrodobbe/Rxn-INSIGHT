@@ -12,8 +12,7 @@ Option 1: Installing from PyPI using pip
     pip install rxn-insight
 
 .. note::
-    Rxn-INSIGHT supports Python 3.10 through 3.14. (Python 3.8 and 3.9 should also
-    work but are not routinely tested.)
+    Rxn-INSIGHT requires Python 3.10 or newer and is tested on 3.10 through 3.14.
 
 Option 2: Installing from source using pip
 ------------------------------------------

@@ -20,6 +20,30 @@ rxn\_insight.database module
    :undoc-members:
    :show-inheritance:
 
+rxn\_insight.molecule module
+----------------------------
+
+.. automodule:: rxn_insight.molecule
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+rxn\_insight.naming module
+--------------------------
+
+.. automodule:: rxn_insight.naming
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+rxn\_insight.ord module
+-----------------------
+
+.. automodule:: rxn_insight.ord
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 rxn\_insight.reaction module
 ----------------------------
 
