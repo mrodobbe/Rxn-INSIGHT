@@ -4,13 +4,16 @@ Covers the top-level naming API (``name_reaction`` / ``batch_name_reaction``),
 the RDChiral-based ``Reaction.explain`` template, the ``Compound`` class, and a
 guard that importing the package stays lazy (no eager torch/rxnmapper import).
 """
+import math
 import subprocess
 import sys
 
+import numpy as np
 import pytest
 
 import rxn_insight as ri
 from rxn_insight import Compound, Reaction, batch_name_reaction, name_reaction
+from rxn_insight.utils import get_similarity
 
 SUZUKI = "BrC1=CC=CC=C1.OB(O)c1ccccc1>>c1ccc(-c2ccccc2)cc1"
 
@@ -57,6 +60,36 @@ def test_compound_from_name():
     except Exception as exc:  # OPSIN/PubChem endpoint may be unreachable
         pytest.skip(f"name-resolution service unavailable: {exc}")
     assert compound.smiles == "c1ccccc1"
+
+
+@pytest.mark.parametrize(
+    "metric",
+    ["jaccard", "dice", "kulczynski1", "rogerstanimoto",
+     "russellrao", "sokalmichener", "sokalsneath"],
+)
+def test_binary_similarity_metrics(metric):
+    """Every advertised binary metric is dispatchable and returns a float."""
+    v1 = np.array([1, 0, 1, 1])
+    v2 = np.array([1, 1, 1, 0])
+    assert isinstance(get_similarity(v1, v2, metric=metric), float)
+
+
+def test_kulczynski1_handles_identical_vectors():
+    """Vectors that never mismatch must not raise (SciPy returned inf here).
+
+    ``kulczynski1`` divides by the number of mismatches, so comparing a
+    fingerprint with itself would otherwise be a ZeroDivisionError.
+    """
+    v = np.array([1, 0, 1, 1])
+    assert math.isinf(get_similarity(v, v, metric="kulczynski1"))
+    assert get_similarity(v, v, metric="sokalmichener") == 1.0
+
+
+def test_unknown_metric_raises():
+    """An unsupported metric name is rejected."""
+    v = np.array([1, 0, 1, 1])
+    with pytest.raises(ValueError):
+        get_similarity(v, v, metric="not-a-metric")
 
 
 def test_import_is_lazy():

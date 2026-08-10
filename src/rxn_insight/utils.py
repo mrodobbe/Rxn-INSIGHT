@@ -49,7 +49,10 @@ def kulczynski1(u: npt.NDArray[Any], v: npt.NDArray[Any]) -> float:
     ntt = float(np.sum(u & v))
     ntf = float(np.sum(u & ~v))
     nft = float(np.sum(~u & v))
-    return ntt / (ntf + nft)
+    # Divide through numpy so that two vectors which never mismatch yield inf (as the
+    # removed SciPy implementation did) instead of raising ZeroDivisionError.
+    with np.errstate(divide="ignore", invalid="ignore"):
+        return float(np.divide(ntt, ntf + nft))
 
 
 def sokalmichener(u: npt.NDArray[Any], v: npt.NDArray[Any]) -> float:
@@ -770,7 +773,8 @@ def get_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any], metric: str = "ja
     Calculate the similarity between two fingerprints using a specified metric.
 
     Supported metrics include:
-    - Binary metrics: `jaccard`, `dice`, `rogerstanimoto`, `russellrao`, `sokalsneath`.
+    - Binary metrics: `jaccard`, `dice`, `kulczynski1`, `rogerstanimoto`, `russellrao`,
+      `sokalmichener`, `sokalsneath`.
     - Distance-based metrics: `braycurtis`, `canberra`, `chebyshev`, `manhattan`, `correlation`, `cosine`, `euclidean`, `minkowski`.
 
     Args:
@@ -798,10 +802,14 @@ def get_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any], metric: str = "ja
         similarity = calculate_jaccard_similarity(v1, v2)
     elif metric == "dice":
         similarity = calculate_dice_similarity(v1, v2)
+    elif metric == "kulczynski1":
+        similarity = calculate_kulczynski1_similarity(v1, v2)
     elif metric == "rogerstanimoto":
         similarity = calculate_rogerstanimoto_similarity(v1, v2)
     elif metric == "russellrao":
         similarity = calculate_russellrao_similarity(v1, v2)
+    elif metric == "sokalmichener":
+        similarity = calculate_sokalmichener_similarity(v1, v2)
     elif metric == "sokalsneath":
         similarity = calculate_sokalsneath_similarity(v1, v2)
     elif metric == "braycurtis":
@@ -857,6 +865,40 @@ def calculate_dice_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> flo
         float: Dice similarity (1 - Dice distance).
     """
     return 1 - dice(v1, v2)
+
+
+def calculate_kulczynski1_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
+    """
+    Calculate the Kulczynski 1 similarity between two vectors.
+
+    Kulczynski similarity measures the average overlap between two sets. Note that the
+    underlying Kulczynski 1 dissimilarity is unbounded, so this value is not restricted
+    to ``[0, 1]``; it is ``-inf`` for two vectors that never mismatch.
+
+    Args:
+        v1 (npt.NDArray[Any]): First vector.
+        v2 (npt.NDArray[Any]): Second vector.
+
+    Returns:
+        float: Kulczynski 1 similarity.
+    """
+    return 1 - kulczynski1(v1, v2)
+
+
+def calculate_sokalmichener_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
+    """
+    Calculate the Sokal-Michener similarity between two vectors.
+
+    Sokal-Michener similarity weighs mismatches twice as heavily as matches.
+
+    Args:
+        v1 (npt.NDArray[Any]): First vector.
+        v2 (npt.NDArray[Any]): Second vector.
+
+    Returns:
+        float: Sokal-Michener similarity.
+    """
+    return 1 - sokalmichener(v1, v2)
 
 
 def calculate_rogerstanimoto_similarity(v1: npt.NDArray[Any], v2: npt.NDArray[Any]) -> float:
