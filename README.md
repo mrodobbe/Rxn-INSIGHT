@@ -4,6 +4,15 @@
 
 Rxn-INSIGHT is an open-source algorithm, written in python, to classify and name chemical reactions, and suggest reaction conditions based on similarity and popularity.
 * https://doi.org/10.1186/s13321-024-00834-z: Peer-reviewed publication on Rxn-INSIGHT
+
+> **See also: [ReactionClassifier](https://github.com/schwallergroup/ReactionClassifier)** — our
+> newer reaction naming tool, which uses agentically generated, verifiable rules for
+> deterministic and self-expanding reaction classification.
+>
+> D. Armstrong, M. R. Dobbelaere, V. Olikauskas, H. Avila, O. Susanu, J. Waser, and P. Schwaller,
+> *Agentic generation of verifiable rules for deterministic, self-expanding reaction
+> classification*, [arXiv:2607.01061](https://arxiv.org/abs/2607.01061).
+
 ## 1. Installation
 Rxn-INSIGHT relies on NumPy, SciPy, Pandas, RDKit, RDChiral, joblib, and RXNMapper.
 It requires Python 3.10 or newer and is tested on 3.10 through 3.14.
@@ -126,6 +135,10 @@ names = ri.batch_name_reaction(
 )
 # ['Heck terminal vinyl', 'Oxidation or Dehydrogenation of Alcohols to Aldehydes and Ketones']
 ```
+
+For a rule-based classifier that expands its own rule set, see
+[ReactionClassifier](https://github.com/schwallergroup/ReactionClassifier)
+([arXiv:2607.01061](https://arxiv.org/abs/2607.01061)).
 
 ### Looking Up Compounds by Name
 `Compound` resolves a chemical name to a structure (via OPSIN by default, or PubChem)
