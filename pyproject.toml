@@ -23,6 +23,10 @@ dependencies = [
     "joblib",
     "tqdm",
     "openpyxl",
+    # molecule.py imports requests at module level for the OPSIN/PubChem
+    # lookups, so it is needed for `import rxn_insight` itself. It was only
+    # ever present by accident, via rxnmapper -> transformers.
+    "requests",
 ]
 authors = [
     {name = "Maarten R. Dobbelaere", email = "mrodobbe.dobbelaere@ugent.be"}

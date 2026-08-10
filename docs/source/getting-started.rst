@@ -52,6 +52,35 @@ You should see output similar to:
    Reaction name: Suzuki coupling with boronic acids
    Functional groups in reactants: ['Aromatic halide', 'Boronic acid']
 
+Understanding What Changed
+--------------------------
+
+``get_reaction_info`` tells you how a reaction is labelled. ``explain`` tells
+you *why*: which bonds formed and broke, which atoms left, and which rings
+survived.
+
+.. code:: python
+
+   import rxn_insight as ri
+
+   rxn = ri.Reaction("c1ccccc1I.C=CC(=O)OC>>COC(=O)/C=C/c1ccccc1")
+   explanation = rxn.explain()
+
+   for change in explanation["bond_changes"]:
+       print(change)
+
+   print(explanation["classification"])
+
+You should see output similar to:
+
+::
+
+   C-C single bond formed between atoms 6 and 7.
+   C-I single bond broken between atoms 7 and 13.
+   {'class': 'C-C Coupling', 'name': 'Heck terminal vinyl'}
+
+See :doc:`advanced-features` for the full set of keys.
+
 Quick Reaction Naming
 ---------------------
 

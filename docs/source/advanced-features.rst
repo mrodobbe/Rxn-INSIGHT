@@ -33,6 +33,46 @@ Returns a comprehensive dictionary with reaction details: - Reaction
 class and name - Functional groups in reactants and products - Ring
 systems - Byproducts - Scaffold information - Atom mapping information
 
+``explain()``
+^^^^^^^^^^^^^
+
+Returns a dictionary describing *what changed* in the reaction, rather than
+just how it is labelled. Useful for inspecting why a reaction was classified
+the way it was. The keys are:
+
+- ``reaction_center``: atom indices that take part in the transformation
+- ``bond_changes``: bonds formed and broken, in readable form
+- ``stereochemistry_changes``: created, destroyed or inverted stereocentres
+- ``leaving_groups`` / ``added_atoms``: atoms lost from or gained by the product
+- ``rings``: rings ``formed``, ``broken`` and ``preserved``, named where known
+- ``functional_groups``: groups ``reacting`` and ``formed``
+- ``template``: the RDChiral reaction template
+- ``classification``: the resulting ``class`` and ``name``
+
+.. code:: python
+
+   from rxn_insight.reaction import Reaction
+
+   rxn = Reaction("c1ccccc1I.C=CC(=O)OC>>COC(=O)/C=C/c1ccccc1")
+   explanation = rxn.explain()
+
+   for change in explanation["bond_changes"]:
+       print(change)
+   # C-C single bond formed between atoms 6 and 7.
+   # C-I single bond broken between atoms 7 and 13.
+
+   print(explanation["leaving_groups"])
+   # ['Atom types I, with atom indices 12']
+
+   print(explanation["rings"])
+   # {'preserved': ['benzene']}
+
+   print(explanation["classification"])
+   # {'class': 'C-C Coupling', 'name': 'Heck terminal vinyl'}
+
+Keys are only populated when something of that kind happened, so a reaction
+that forms no rings has no ``formed`` entry under ``rings``.
+
 ``find_neighbors(df, fp='MACCS', concatenate=True, max_return=100, threshold=0.3, broaden=False, full_search=False)``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

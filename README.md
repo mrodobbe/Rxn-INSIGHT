@@ -5,18 +5,24 @@
 Rxn-INSIGHT is an open-source algorithm, written in python, to classify and name chemical reactions, and suggest reaction conditions based on similarity and popularity.
 * https://doi.org/10.1186/s13321-024-00834-z: Peer-reviewed publication on Rxn-INSIGHT
 ## 1. Installation
-Rxn-INSIGHT relies on NumPy, Pandas, RDKit, RDChiral, and RXNMapper.
+Rxn-INSIGHT relies on NumPy, SciPy, Pandas, RDKit, RDChiral, joblib, and RXNMapper.
+It requires Python 3.10 or newer and is tested on 3.10 through 3.14.
 
 A virtual environment can be installed with Anaconda as follows:
 
 ```console
-conda create -n rxn-insight python=3.10
+conda create -n rxn-insight python=3.11
 conda activate rxn-insight
 ```
 
 ### Option 1: Installing via PyPI:
 ```
 pip install rxn-insight
+```
+
+Support for the [Open Reaction Database](https://open-reaction-database.org) is optional:
+```
+pip install "rxn-insight[ord]"
 ```
 ### Option 2: Installing directly from source:
 ```
@@ -58,21 +64,44 @@ The reaction info contains most of the information:
  'MAPPED_REACTION': '[CH3:1][O:2][C:3](=[O:4])[CH:5]=[CH2:6].I[c:7]1[cH:8][cH:9][cH:10][cH:11][cH:12]1>>[CH3:1][O:2][C:3](=[O:4])/[CH:5]=[CH:6]/[c:7]1[cH:8][cH:9][cH:10][cH:11][cH:12]1', 
  'N_REACTANTS': 2, 
  'N_PRODUCTS': 1, 
- 'FG_REACTANTS': ('Aromatic halide', 'Vinyl'), 
- 'FG_PRODUCTS': (), 
- 'PARTICIPATING_RINGS_REACTANTS': ('c1ccccc1',), 
- 'PARTICIPATING_RINGS_PRODUCTS': ('c1ccccc1',), 
- 'ALL_RINGS_PRODUCTS': ('c1ccccc1',), 
- 'BY-PRODUCTS': ('HI',), 
+ 'FG_REACTANTS': ['Aromatic halide', 'Vinyl'], 
+ 'FG_PRODUCTS': [], 
+ 'PARTICIPATING_RINGS_REACTANTS': ['c1ccccc1'], 
+ 'PARTICIPATING_RINGS_PRODUCTS': ['c1ccccc1'], 
+ 'ALL_RINGS_PRODUCTS': ['c1ccccc1'], 
+ 'BY-PRODUCTS': ['HI'], 
  'CLASS': 'C-C Coupling', 
  'TAG': '55becfded1a3842d5a03bbf3e1610411c659aff0806930400c4db2ef61f9c87f', 
- 'SOLVENT': ('',), 
- 'REAGENT': ('',), 
- 'CATALYST': ('',), 
+ 'SOLVENT': [''], 
+ 'REAGENT': [''], 
+ 'CATALYST': [''], 
  'REF': '', 
  'NAME': 'Heck terminal vinyl', 
  'SCAFFOLD': 'c1ccccc1'}
 ```
+
+### Explaining a Reaction
+`explain()` reports *what changed* rather than just how the reaction is labelled —
+the bonds formed and broken, the atoms lost, the rings that survived, and the
+template that describes the transformation:
+
+```python
+rxn = Reaction("c1ccccc1I.C=CC(=O)OC>>COC(=O)/C=C/c1ccccc1")
+explanation = rxn.explain()
+
+for change in explanation["bond_changes"]:
+    print(change)
+# C-C single bond formed between atoms 6 and 7.
+# C-I single bond broken between atoms 7 and 13.
+
+explanation["leaving_groups"]   # ['Atom types I, with atom indices 12']
+explanation["rings"]            # {'preserved': ['benzene']}
+explanation["classification"]   # {'class': 'C-C Coupling', 'name': 'Heck terminal vinyl'}
+```
+
+The full set of keys is `reaction_center`, `bond_changes`,
+`stereochemistry_changes`, `leaving_groups`, `added_atoms`, `rings`,
+`functional_groups`, `template`, and `classification`.
 
 ### Reaction Naming
 If you only need the *name* of a reaction, the top-level `name_reaction` helper is the fastest route.
@@ -97,6 +126,21 @@ names = ri.batch_name_reaction(
 )
 # ['Heck terminal vinyl', 'Oxidation or Dehydrogenation of Alcohols to Aldehydes and Ketones']
 ```
+
+### Looking Up Compounds by Name
+`Compound` resolves a chemical name to a structure (via OPSIN by default, or PubChem)
+and then behaves like a `Molecule`:
+
+```python
+from rxn_insight.molecule import Compound
+
+benzene = Compound("benzene")
+benzene.smiles      # 'c1ccccc1'
+benzene.scaffold    # 'c1ccccc1'
+```
+
+Pass `use_opsin=False` to resolve through PubChem instead, or `allow_pubchem=True`
+to additionally fetch descriptive information. Both routes require network access.
 
 ### Similarity Search
 A similarity search can be performed when a database with similar reactions is provided as a pandas DataFrame (df in this case). Another Pandas DataFrame is returned.
