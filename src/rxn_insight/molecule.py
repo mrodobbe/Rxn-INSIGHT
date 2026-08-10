@@ -403,7 +403,33 @@ class Molecule:
 
 
 class Compound(Molecule):
+    """A :class:`Molecule` built from a chemical name instead of a SMILES string.
+
+    The name is resolved to a structure with an online service - OPSIN by
+    default, or PubChem - after which the object behaves like any other
+    ``Molecule`` (fingerprints, scaffold, rings, functional groups).
+
+    Resolution requires network access, and the two routes fail differently on a
+    name that cannot be resolved: OPSIN raises ``KeyError``, while PubChem
+    returns without initialising the underlying ``Molecule``, leaving attributes
+    such as ``smiles`` and ``mol`` absent. Verify the result before relying on it.
+
+    Example:
+        >>> compound = Compound("benzene")
+        >>> compound.smiles
+        'c1ccccc1'
+    """
+
     def __init__(self, name, allow_pubchem: bool = False, use_opsin: bool = True):
+        """Initializes a Compound by resolving a chemical name to a structure.
+
+        Args:
+            name (str): Chemical name to resolve, e.g. ``"benzene"``.
+            allow_pubchem (bool): Whether to fetch additional information from
+                PubChem once the structure is known. Default is False.
+            use_opsin (bool): Resolve through OPSIN. Set to False to resolve
+                through PubChem instead. Default is True.
+        """
         self.name = name
         self.allow_pubchem = allow_pubchem
         self.use_opsin = use_opsin
@@ -413,6 +439,12 @@ class Compound(Molecule):
             self.read_from_pubchem()
 
     def read_from_pubchem(self):
+        """Resolves the compound name to a structure with the PubChem REST API.
+
+        Also records the PubChem CID when it can be retrieved. If the name cannot
+        be resolved this returns without initialising the ``Molecule``, so
+        ``smiles`` and ``mol`` are left absent rather than an error being raised.
+        """
         smiles_url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{self.name}/property/SMILES/txt"
         response = requests.get(smiles_url)
         if response.status_code == 200:
@@ -430,6 +462,14 @@ class Compound(Molecule):
                 logger.warning("No valid SMILES found!")
 
     def read_from_opsin(self):
+        """Resolves the compound name to a structure with the OPSIN web service.
+
+        OPSIN interprets systematic IUPAC names.
+
+        Raises:
+            KeyError: If OPSIN cannot resolve the name, since the response then
+                carries no structure to read.
+        """
         smiles_url = f"https://opsin.ch.cam.ac.uk/opsin/{self.name}.json"
         reqdata = requests.get(smiles_url)
         jsondata = reqdata.json()

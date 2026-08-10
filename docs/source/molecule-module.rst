@@ -50,6 +50,51 @@ Creating a Molecule and Analyzing Properties
     # Get molecular scaffold
     print(f"Scaffold: {mol.scaffold}")
 
+Creating a Molecule from a Chemical Name
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``Compound`` is a ``Molecule`` built from a *name* rather than a SMILES string.
+The name is resolved with an online service, after which the object supports
+everything ``Molecule`` does:
+
+.. code-block:: python
+
+    import rxn_insight as ri
+
+    compound = ri.Compound("benzene")
+
+    print(compound.smiles)     # 'c1ccccc1'
+    print(compound.scaffold)   # 'c1ccccc1'
+    print(compound.inchikey)   # 'UHOVQNZJYSORNB-UHFFFAOYSA-N'
+
+    # Everything Molecule offers is available
+    print(compound.get_functional_groups())
+
+By default the name is resolved through `OPSIN <https://opsin.ch.cam.ac.uk>`__,
+which interprets systematic IUPAC names. Pass ``use_opsin=False`` to resolve
+through PubChem instead, which is more forgiving of trivial and trade names:
+
+.. code-block:: python
+
+    aspirin = ri.Compound("aspirin", use_opsin=False)          # via PubChem
+    ethanol = ri.Compound("ethanol", allow_pubchem=True)       # also fetch descriptions
+
+.. warning::
+    Both routes require network access, and they fail differently on a name that
+    cannot be resolved. OPSIN raises ``KeyError``; PubChem returns without
+    initialising the molecule, leaving ``smiles`` and ``mol`` absent instead of
+    reporting a problem. Guard accordingly:
+
+    .. code-block:: python
+
+        try:
+            compound = ri.Compound(user_supplied_name)
+        except Exception:
+            compound = None
+
+        if compound is None or not hasattr(compound, "smiles"):
+            print("Could not resolve that name")
+
 PubChem Integration
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -256,3 +301,34 @@ API Reference
 
       :return: List of ring SMILES strings found in the molecule
       :rtype: list[str]
+
+.. py:class:: Compound(name, allow_pubchem=False, use_opsin=True)
+
+   A :py:class:`Molecule` created from a chemical name instead of a SMILES
+   string. The name is resolved with an online service, after which every
+   ``Molecule`` attribute and method is available.
+
+   :param str name: Chemical name to resolve, e.g. ``"benzene"``
+   :param bool allow_pubchem: Whether to fetch additional PubChem information
+      once the structure is known (default: False)
+   :param bool use_opsin: Resolve through OPSIN; set to False to resolve
+      through PubChem instead (default: True)
+
+   .. py:attribute:: name
+
+      The chemical name the compound was created from
+
+   .. py:method:: read_from_opsin()
+
+      Resolves the name with the OPSIN web service, which interprets
+      systematic IUPAC names.
+
+   .. py:method:: read_from_pubchem()
+
+      Resolves the name with the PubChem REST API and records the CID when
+      available. More forgiving of trivial and trade names than OPSIN.
+
+   .. note::
+      Resolution requires network access. An unresolvable name raises
+      ``KeyError`` on the OPSIN route, whereas the PubChem route returns with
+      the molecule uninitialised.
