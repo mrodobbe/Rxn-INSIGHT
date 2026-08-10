@@ -246,7 +246,7 @@ class ReactionClassifier:
                         atom_maps.append(mapping)
                         atom_indices.append(map_dict[mapping])
             vals = np.array(vals_new)
-            if len(visited_atoms[np.in1d(visited_atoms, vals)]) > 0:
+            if len(visited_atoms[np.isin(visited_atoms, vals)]) > 0:
                 continue
             elif len(vals) == 0:
                 continue
@@ -315,8 +315,8 @@ class ReactionClassifier:
         fg = []
         visited_atoms: list[list[int]] = []
         for i in df.index:
-            if len(np.in1d(visited_atoms, atom_indices)) != 0:
-                if len(visited_atoms[np.in1d(visited_atoms, atom_indices)]) == len(
+            if len(np.isin(visited_atoms, atom_indices)) != 0:
+                if len(visited_atoms[np.isin(visited_atoms, atom_indices)]) == len(
                     atom_indices
                 ):
                     break
@@ -326,14 +326,14 @@ class ReactionClassifier:
             else:
                 for m in sm:
                     matched_atoms = np.array(m)
-                    if len(matched_atoms[np.in1d(matched_atoms, atom_indices)]) > 0:
-                        if len(np.in1d(visited_atoms, matched_atoms)) == 0:
+                    if len(matched_atoms[np.isin(matched_atoms, atom_indices)]) > 0:
+                        if len(np.isin(visited_atoms, matched_atoms)) == 0:
                             fg.append(df["name"][i])
                             visited_atoms = np.unique(
                                 np.append(visited_atoms, matched_atoms)
                             )
                         elif len(
-                            visited_atoms[np.in1d(visited_atoms, matched_atoms)]
+                            visited_atoms[np.isin(visited_atoms, matched_atoms)]
                         ) != len(matched_atoms):
                             fg.append(df["name"][i])
                             visited_atoms = np.unique(
@@ -373,7 +373,7 @@ class ReactionClassifier:
                 )
                 for r in rs:
                     r = np.array(r)
-                    if np.in1d(r, atom_indices).sum() > 0:
+                    if np.isin(r, atom_indices).sum() > 0:
                         involved_rings.append(r)
 
             if len(involved_rings) == 0:
@@ -407,7 +407,7 @@ class ReactionClassifier:
             return []
         negative_values = np.where(d < 0)[0]
         metals = np.array([3, 5, 11, 12, 29, 30, 34, 47, 50])
-        metal_indices = np.where(np.in1d(self.reaction_center_atoms, metals))[0]
+        metal_indices = np.where(np.isin(self.reaction_center_atoms, metals))[0]
         negative_values = np.unique(
             np.array(list(negative_values) + list(metal_indices))
         )
@@ -804,7 +804,7 @@ class ReactionClassifier:
                         if (
                             len(
                                 a[
-                                    np.in1d(
+                                    np.isin(
                                         a, self.mol_product.GetSubstructMatches(group)
                                     )
                                 ]
@@ -1038,20 +1038,20 @@ class ReactionClassifier:
             all_reactant_mappings = np.array(list(self.reactant_map_dict.keys()))
             all_product_mappings = np.array(list(self.product_map_dict.keys()))
             carbon_balance_reactants = len(
-                all_reactant_mappings[np.in1d(all_reactant_mappings, carbons)]
+                all_reactant_mappings[np.isin(all_reactant_mappings, carbons)]
             ) == len(carbons)
             carbon_balance_products = len(
-                all_product_mappings[np.in1d(all_product_mappings, carbons)]
+                all_product_mappings[np.isin(all_product_mappings, carbons)]
             ) == len(carbons)
             if carbon_balance_products and carbon_balance_reactants:
                 return True
             elif len(
-                all_reactant_mappings[np.in1d(all_reactant_mappings, oxygens)]
-            ) > len(all_product_mappings[np.in1d(all_product_mappings, oxygens)]):
+                all_reactant_mappings[np.isin(all_reactant_mappings, oxygens)]
+            ) > len(all_product_mappings[np.isin(all_product_mappings, oxygens)]):
                 return True
             elif len(
-                all_reactant_mappings[np.in1d(all_reactant_mappings, sulfurs)]
-            ) > len(all_product_mappings[np.in1d(all_product_mappings, sulfurs)]):
+                all_reactant_mappings[np.isin(all_reactant_mappings, sulfurs)]
+            ) > len(all_product_mappings[np.isin(all_product_mappings, sulfurs)]):
                 return True
             else:
                 return False
@@ -1142,10 +1142,10 @@ class ReactionClassifier:
             all_reactant_mappings = np.array(list(self.reactant_map_dict.keys()))
             all_product_mappings = np.array(list(self.product_map_dict.keys()))
             carbon_balance_reactants = len(
-                all_reactant_mappings[np.in1d(all_reactant_mappings, carbons)]
+                all_reactant_mappings[np.isin(all_reactant_mappings, carbons)]
             ) == len(carbons)
             carbon_balance_products = len(
-                all_product_mappings[np.in1d(all_product_mappings, carbons)]
+                all_product_mappings[np.isin(all_product_mappings, carbons)]
             ) == len(carbons)
             if carbon_balance_reactants and carbon_balance_products:
                 return True
@@ -1234,7 +1234,7 @@ class ReactionClassifier:
                     rcid = np.array(self.reaction_center_idx)
                     for tup in carbamate:
                         cid = np.array(list(tup))
-                        carbamate_in_rc = rcid[np.in1d(rcid, cid)]
+                        carbamate_in_rc = rcid[np.isin(rcid, cid)]
                         if len(carbamate_in_rc) > 0:
                             return False
                         else:
@@ -1246,7 +1246,7 @@ class ReactionClassifier:
                     )
                     for tup in ester_reactant:
                         cid = np.array(list(tup))
-                        carboxyl_in_rcr = rcid[np.in1d(rcid, cid)]
+                        carboxyl_in_rcr = rcid[np.isin(rcid, cid)]
                         ester_products = mp.GetSubstructMatches(
                             Chem.MolFromSmarts(
                                 "[OX2;+0]-[C;H0;D3;+0](=[O;H0;D1;+0])-[#6;!H3]"
@@ -1254,7 +1254,7 @@ class ReactionClassifier:
                         )
                         for tup in ester_products:
                             cid = np.array(list(tup))
-                            carboxyl_in_rcp = rcid[np.in1d(rcid, cid)]
+                            carboxyl_in_rcp = rcid[np.isin(rcid, cid)]
                             if len(carboxyl_in_rcr) > 0 and len(carboxyl_in_rcp) > 0:
                                 if (
                                     len(
@@ -1377,7 +1377,7 @@ class ReactionClassifier:
                     no_bonds = np.where(
                         self.be_matrix_reactants[maps_1, heteroatom] == 0
                     )[0]
-                    carbon_bonds = maps_1[np.in1d(maps_1, carbons)]
+                    carbon_bonds = maps_1[np.isin(maps_1, carbons)]
                     # rcid = np.array(self.reaction_center_idx) <--- seems to be unused
                     carbonyls_r: list[int] = []
                     carbonyls_p: list[int] = []
@@ -1437,7 +1437,7 @@ class ReactionClassifier:
                     no_bonds = np.where(self.be_matrix_reactants[maps_1, carbon] == 0)[
                         0
                     ]
-                    if len(maps_1[np.in1d(maps_1, carbons)]) > 0 and len(no_bonds) > 0:
+                    if len(maps_1[np.isin(maps_1, carbons)]) > 0 and len(no_bonds) > 0:
                         return True
                     else:
                         continue
@@ -1462,7 +1462,7 @@ class ReactionClassifier:
         involved_types = self.atoms_diagonal[a]
         d = m.diagonal()
         halogens = np.array([9, 17, 35, 53])
-        x_indices = np.where(np.in1d(self.reaction_center_atoms, halogens))[0]
+        x_indices = np.where(np.isin(self.reaction_center_atoms, halogens))[0]
         if len(np.where(d < 0)[0]) > 0:
             # Atoms that are not found in products
             count_x_additions = 0
@@ -1503,7 +1503,7 @@ class ReactionClassifier:
             return False
         elif not d.any():
             metals = np.array([3, 5, 11, 12, 29, 30, 34, 47, 50])
-            metal_indices = np.where(np.in1d(self.reaction_center_atoms, metals))[0]
+            metal_indices = np.where(np.isin(self.reaction_center_atoms, metals))[0]
             if len(metal_indices) > 0:
                 for metal_idx in metal_indices:
                     if len(np.where(m[:, metal_idx] < 0)[0]) == 0:
@@ -1530,7 +1530,7 @@ class ReactionClassifier:
                     no_bonds = np.where(self.be_matrix_reactants[maps_1, carbon] == 0)[
                         0
                     ]
-                    if len(maps_1[np.in1d(maps_1, carbons)]) > 0 and len(no_bonds) > 0:
+                    if len(maps_1[np.isin(maps_1, carbons)]) > 0 and len(no_bonds) > 0:
                         continue
                     else:
                         return True
@@ -1589,11 +1589,11 @@ class ReactionClassifier:
                     no_bonds = len(
                         np.where(self.be_matrix_products[maps_1, heteroatom] == 0)[0]
                     )
-                    if len(maps_1[np.in1d(maps_1, carbons)]) > 0 and no_bonds > 0:
+                    if len(maps_1[np.isin(maps_1, carbons)]) > 0 and no_bonds > 0:
                         in_products = len(
                             np.where(
                                 self.be_matrix_products[
-                                    maps_1[np.in1d(maps_1, carbons)]
+                                    maps_1[np.isin(maps_1, carbons)]
                                 ]
                                 != 0
                             )[0]
@@ -1660,7 +1660,7 @@ class ReactionClassifier:
                 elif heteroatom in carbons:  # Indicates an alkyne
                     if len(silicons) == 0:
                         continue
-                    elif len(maps_1[np.in1d(maps_1, silicons)]) > 0:
+                    elif len(maps_1[np.isin(maps_1, silicons)]) > 0:
                         return True
                     else:
                         continue
@@ -1668,7 +1668,7 @@ class ReactionClassifier:
                     no_bonds = len(
                         np.where(self.be_matrix_reactants[maps_1, heteroatom] == 0)[0]
                     )
-                    if len(maps_1[np.in1d(maps_1, carbons)]) > 0 and no_bonds > 0:
+                    if len(maps_1[np.isin(maps_1, carbons)]) > 0 and no_bonds > 0:
                         return True
                     else:
                         continue
